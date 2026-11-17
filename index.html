@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
+<!--SEDER-LIMUD-PAGE-->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -594,6 +595,17 @@ window.onRestoreFile=restoreFrom;
 function nativeSync(){ const A=window.Android; if(!A) return;
   try{ if(A.setAgenda) A.setAgenda(JSON.stringify(agenda())); }catch(e){}
   try{ if(A.autoBackup){ const last=+(localStorage.getItem("lastBk")||0); if(Date.now()-last>7*DAY && A.autoBackup("seder-limud-backup-"+TODAY()+".json",backupText())) localStorage.setItem("lastBk",String(Date.now())); } }catch(e){} }
+// ---- updates (Android app): content arrives by itself, a new app version is offered as a download
+let APPINFO=null; try{ APPINFO=JSON.parse(localStorage.getItem("appinfo")||"null"); }catch(e){}
+let WEBREADY=false;
+function appVer(){ try{ return window.Android&&Android.appVersion? +Android.appVersion() : 0; }catch(e){ return 0; } }
+function apkNewer(){ return APPINFO && appVer() && +APPINFO.apk > appVer(); }
+window.onAppInfo=function(j){ try{ APPINFO=JSON.parse(j); localStorage.setItem("appinfo",j); }catch(e){} if(!typing()) refresh(); };
+window.onWebUpdate=function(){ WEBREADY=true; if(!typing()) refresh(); };
+function updBanner(){ if(!IS_APK) return "";
+  if(WEBREADY) return `<div class="card" style="border-top-color:var(--ok)"><b>עדכון לאפליקציה מוכן</b><p class="note">הוא ייטען לבד בפתיחה הבאה, או עכשיו.</p><button class="btn small" data-reload="1">טען עכשיו</button></div>`;
+  if(apkNewer()) return `<div class="card" style="border-top-color:var(--accent)"><b>יש גרסה חדשה של האפליקציה (${esc(APPINFO.apk)})</b><p class="note">מורידים ומתקינים מעל הקיימת. ההתקדמות וההערות נשמרות.</p>${linkBtn(APPINFO.apkUrl,"הורד והתקן")}</div>`;
+  return ""; }
 function uiCfg(){ try{ return JSON.parse(localStorage.getItem("ui")||"{}"); }catch(e){ return {}; } }
 function applyUI(){ const c=uiCfg(), th=c.theme||(IS_APK?"light":"auto");
   if(th==="auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme",th);
@@ -714,6 +726,7 @@ function dayView(d){
     <div class="mid"><div class="d1">${esc(fmtDate(t))}${t===today?" · היום":""}</div><div class="d2">${esc(hebDate(t))}</div></div>
     <button class="navbtn" data-go="${toISO(t+DAY)}" aria-label="יום הבא">‹</button></div>`;
   if(t!==today) h+=`<div class="row" style="justify-content:center;margin:-4px 0 12px"><a class="btn small" href="#today">חזרה להיום</a></div>`;
+  else h+=updBanner();
   if(isOff(t)){
     const man=!isShabbat(t)&&!holName(t);
     h+=`<div class="card" style="text-align:center"><div class="big">${isShabbat(t)?"שבת שלום":esc(offLabel(t))}</div><p class="note">${enabled().some(k=>!trackOff(k,t)&&trackPortion(k,t).units.length)?"ביום זה מתוכננים רק: "+esc(enabled().filter(k=>!trackOff(k,t)&&trackPortion(k,t).units.length).map(nameOf).join(", "))+".":"אין לימוד מתוכנן ביום זה. הלוח ממשיך ביום הלימוד הבא מהמקום שבו עצרת."}</p>
@@ -1017,6 +1030,11 @@ function setupView(){
       <p class="note">כך מוסיפים ספר מכל אתר, למשל "על התורה": פותחים שם יחידה כלשהי, מעתיקים את הכתובת, ומחליפים בה את מספר היחידה ב־{n}.</p>
       <p class="note">אם תמלא את השם כפי שהוא מופיע בכתובת של ספריא, יופיע כפתור שפותח את היחידה של היום. הקישור מתאים לספרים שמחולקים שם לפי אותן יחידות.</p>
       <button class="btn small primary" id="nc-add">הוסף ספר</button></div></div>
+  ${IS_APK&&appVer()?`<div class="card"><div class="label">עדכונים</div>
+    <p class="note">גרסת האפליקציה: ${appVer()}${APPINFO?` · הגרסה האחרונה: ${esc(APPINFO.apk)}`:""}</p>
+    <p class="note">תיקונים בלוח ובמסכים מגיעים לבד כשיש אינטרנט, בלי התקנה. רק שינויים בהתראות או בווידג'ט דורשים להתקין גרסה חדשה, ואז יופיע כאן כפתור הורדה.</p>
+    ${apkNewer()? linkBtn(APPINFO.apkUrl,"הורד והתקן את גרסה "+APPINFO.apk) : ""}
+    <div class="row" style="margin-top:8px"><button class="btn small" data-chkupd="1">בדוק עכשיו</button></div></div>`:""}
   <div class="card"><div class="label">תצוגה</div>
     <div class="field" style="margin-top:8px"><span>מצב תצוגה</span><div class="seg" id="seg-theme">${(IS_APK?[["light","בהיר"],["dark","כהה"]]:[["auto","אוטומטי"],["light","בהיר"],["dark","כהה"]]).map(o=>`<button data-th="${o[0]}" class="${(uiCfg().theme||(IS_APK?"light":"auto"))===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>
     <div class="field"><span>גודל הטקסט</span><div class="seg" id="seg-zoom">${[[90,"קטן"],[100,"רגיל"],[115,"גדול"],[130,"גדול מאוד"]].map(o=>`<button data-z="${o[0]}" class="${(uiCfg().zoom||100)===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div></div>
@@ -1110,9 +1128,11 @@ function render(keep){ EFF={};
 
 // =================== EVENTS ===================
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd]"); if(!el) return;
+  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd]"); if(!el) return;
   const ds=el.dataset;
   if(ds.go){ location.hash = ds.go===TODAY()? "today" : "day-"+ds.go; return; }
+  if(ds.reload){ try{ Android.reloadPage(); }catch(e){} return; }
+  if(ds.chkupd){ try{ Android.checkUpdates(); toast("בודק…"); }catch(e){ toast("לא זמין"); } return; }
   if(ds.rm){ const nm=nameOf(ds.rm); setTrackOn(ds.rm,false); save(); toast(nm+" הוסר. אפשר להחזיר אותו מרשימת הלימודים."); refresh(); return; }
   if(ds.restore){ setTrackOn(ds.restore,true); save(); toast(nameOf(ds.restore)+" חזר ללוח"); refresh(); return; }
   if(ds.cdelp){ if(!el.dataset.sure){ el.dataset.sure="1"; el.textContent="לחץ שוב למחיקה"; return; }
