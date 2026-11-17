@@ -44,6 +44,11 @@ h1{font-family:"Frank Ruhl Libre",serif;font-weight:900;font-size:25px;margin:0;
 .dots i.on{background:var(--tc)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:12px;border-top:4px solid var(--tc,var(--line))}
 .t-gemara{--tc:var(--t-gemara)} .t-mishnah{--tc:var(--t-mishnah)} .t-tanakh{--tc:var(--t-tanakh)} .t-kook{--tc:var(--t-kook)} .t-parasha{--tc:var(--t-parasha)} .t-custom{--tc:var(--t-custom)} .t-rambam{--tc:var(--t-rambam)} .t-tehillim{--tc:var(--t-tehillim)} .t-tanya{--tc:var(--t-tanya)}
+.rl{font-family:"Frank Ruhl Libre",serif;font-size:19px;line-height:1.75;padding:3px 4px;border-radius:6px}
+.rl.tap{cursor:pointer} .rl.op{background:color-mix(in srgb,var(--tc) 12%,transparent)}
+.rn{color:var(--tc);font-weight:700;font-size:14px;margin-left:6px;font-family:inherit}
+.cmb{border-right:3px solid var(--tc);padding:4px 10px;margin:2px 4px 10px 0;font-size:16px;line-height:1.65;background:color-mix(in srgb,var(--tc) 5%,transparent);border-radius:4px}
+.cn{color:var(--tc)}
 .rtext{font-family:"Frank Ruhl Libre",serif;font-size:19px;line-height:1.8;margin:0 0 10px}
 .rtext.cm{font-size:17px;line-height:1.7}
 .rsep{border-top:1px dashed var(--line);margin:8px 0}
@@ -70,6 +75,12 @@ textarea,select,input[type=date],input[type=number],input[type=password],input[t
 textarea{min-height:70px;resize:vertical}
 .bar{height:9px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0 4px}
 .bar>i{display:block;height:100%;background:var(--tc,var(--ok));border-radius:99px}
+body{overflow-x:clip}
+.jump{position:sticky;top:0;z-index:4;display:flex;gap:6px;overflow-x:auto;padding:8px 2px;margin:0 -2px 6px;background:var(--bg);scrollbar-width:none}
+.jump::-webkit-scrollbar{display:none}
+.jchip{flex:0 0 auto;border:1px solid var(--tc,var(--line));color:var(--tc,var(--ink));background:var(--card);border-radius:999px;padding:5px 12px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.jchip.ok{background:var(--tc,var(--ink));color:#fff}
+#view .card{scroll-margin-top:58px}
 nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav a{flex:1;max-width:160px;text-align:center;padding:12px 2px;color:var(--muted);text-decoration:none;font-weight:600;font-size:15px}
 nav a.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
@@ -249,7 +260,13 @@ const num=n=> n<1000? gem(n) : String(n);
 // Peninei Halakhah volumes as they are titled on Sefaria
 const PH=[["שבת","Shabbat"],["תפילה","Prayer"],["תפילת נשים","Women's Prayer"],["ברכות","Berakhot"],["פסח","Pesach"],["זמנים","Zemanim"],["מועדים","Festivals"],["סוכות","Sukkot"],["ימים נוראים","Days of Awe"],
   ["כשרות","Kashrut"],["משפחה","Family"],["שמחת הבית וברכתו","Simchat Habayit U'Virkhato"],["העם והארץ","The Nation and the Land"],["שביעית ויובל","Shemitah and Yovel"],["ליקוטים א","Likkutim I"],["ליקוטים ב","Likkutim II"]];
-const SA=[["אורח חיים","Orach_Chayyim",697],["יורה דעה","Yoreh_Deah",403],["אבן העזר","Even_HaEzer",178],["חושן משפט","Choshen_Mishpat",427]];
+const SA=[["אורח חיים","Orach_Chayyim",697,"oc","Shulchan Arukh, Orach Chayim",[["Mishnah Berurah","משנה ברורה"],["Biur Halacha","ביאור הלכה"],["Magen Avraham","מגן אברהם"],["Turei Zahav","ט״ז"],["Ba'er Hetev","באר היטב"]]],["יורה דעה","Yoreh_Deah",403,"yd","Shulchan Arukh, Yoreh De'ah",[["Siftei Kohen","ש״ך"],["Turei Zahav","ט״ז"],["Ba'er Hetev","באר היטב"],["Pitchei Teshuva","פתחי תשובה"]]],["אבן העזר","Even_HaEzer",178,"eh","Shulchan Arukh, Even HaEzer",[["Chelkat Mechokek","חלקת מחוקק"],["Beit Shmuel","בית שמואל"],["Ba'er Hetev","באר היטב"],["Pitchei Teshuva","פתחי תשובה"]]],["חושן משפט","Choshen_Mishpat",427,"cm","Shulchan Arukh, Choshen Mishpat",[["Me'irat Einayim","סמ״ע"],["Siftei Kohen","ש״ך"],["Ketzot HaChoshen","קצות החושן"],["Ba'er Hetev","באר היטב"]]]];
+const SAL={"oc":[9,6,17,23,1,4,4,17,6,12,15,3,3,5,6,1,3,3,2,2,4,1,4,6,13,2,11,3,1,5,2,52,5,4,1,3,3,13,10,8,1,3,9,1,2,9,14,1,1,1,9,1,26,3,22,5,2,7,5,5,26,5,9,4,3,10,1,1,2,5,7,5,4,6,6,8,2,1,9,1,2,2,5,1,2,1,3,1,8,27,6,10,4,9,4,2,5,5,3,1,4,5,3,8,1,3,4,12,3,8,3,2,9,9,1,1,5,1,4,1,3,3,6,12,2,4,2,45,2,1,8,2,1,2,14,1,6,1,11,3,8,2,5,4,3,4,8,1,1,5,12,1,22,15,2,1,1,13,20,15,4,10,2,2,2,1,20,17,3,22,5,2,3,8,6,1,5,7,6,5,10,7,12,6,5,2,4,10,2,5,3,2,6,3,3,4,4,1,11,2,4,18,8,13,5,6,1,18,3,2,6,2,3,1,4,14,8,9,10,2,2,4,6,13,10,1,3,3,2,5,1,3,2,2,4,4,1,2,2,17,1,1,2,6,6,5,6,4,4,2,2,7,5,9,3,1,8,1,7,2,4,3,17,10,4,13,3,13,1,2,17,10,7,4,12,5,5,1,7,2,1,7,1,7,7,5,1,10,2,2,6,2,3,5,1,8,5,15,10,1,51,13,27,3,23,14,22,52,5,9,9,10,10,12,13,12,7,19,17,20,19,6,10,15,16,13,4,49,9,11,10,4,3,27,5,13,4,8,7,14,3,1,1,2,19,3,1,1,5,3,1,2,3,2,5,2,3,14,1,3,2,12,36,5,8,15,1,5,1,8,6,19,1,4,4,4,1,5,2,4,7,20,1,2,4,9,1,1,1,2,2,8,3,3,1,2,18,11,11,1,1,1,1,1,9,1,3,4,13,3,1,1,1,2,4,5,1,5,1,2,1,7,4,1,3,4,1,8,2,1,2,2,11,4,1,3,4,2,4,4,2,11,3,8,3,4,12,7,2,7,27,7,9,4,6,3,2,1,6,7,5,7,3,1,3,6,16,10,1,3,3,16,7,1,7,2,2,2,1,1,2,1,1,1,1,1,4,3,10,9,2,1,4,3,4,3,17,20,5,6,7,4,2,4,1,9,7,2,7,11,4,3,8,11,9,3,4,9,5,1,3,4,4,2,2,12,24,2,4,1,8,2,5,3,3,4,16,6,14,8,5,2,3,2,11,5,12,20,2,4,18,12,2,25,2,1,1,1,10,5,5,13,1,1,6,8,3,12,2,3,3,3,1,5,13,16,1,1,3,3,4,9,2,4,5,23,3,5,9,9,8,4,2,1,1,1,3,1,1,3,2,1,1,2,1,4,6,4,1,4,2,10,12,4,2,2,4,10,6,1,6,4,6,5,1,3,4,3,19,13,10,4,10,4,1,2,3,2,8,10,1,1,3,2,9,11,2,22,6,2,15,2,2,1,1,1,1,9,1,3,1,3,3,11,2,1,1,2,1,3,8,2,4,2,3,5,4,1,1,2,2,3,1,3,7,3,2,8,6,18,11,4,4,4,4,8,1],"yd":[14,11,1,7,3,4,1,1,1,3,4,2,6,6,3,12,3,20,8,4,5,2,6,20,3,2,1,24,1,2,4,8,11,10,10,17,7,5,25,6,10,9,6,10,2,6,5,12,5,3,4,7,5,5,13,10,21,12,2,3,33,4,2,21,14,10,6,15,21,6,3,4,6,1,3,6,1,1,3,6,9,5,10,17,3,10,11,2,4,4,8,9,1,9,7,5,3,9,7,4,9,4,7,3,14,2,2,7,2,10,7,16,16,12,3,7,1,13,20,16,7,12,26,27,11,7,4,5,20,10,2,7,7,13,16,1,6,11,15,1,8,15,6,2,9,15,5,12,5,3,14,2,4,2,3,3,3,2,3,23,11,5,3,4,1,3,1,27,0,2,1,6,19,8,8,8,40,3,19,12,12,6,1,12,4,5,14,6,34,54,1,5,1,14,17,13,5,48,13,1,75,9,7,4,2,5,1,5,1,3,4,1,3,2,6,12,48,6,3,23,14,1,4,1,1,3,3,51,9,1,1,20,1,74,6,6,12,23,17,25,9,36,9,18,22,26,4,8,16,5,14,12,12,2,2,6,11,13,6,1,1,7,5,6,13,14,85,12,11,2,7,4,6,7,6,13,1,4,5,2,5,19,5,2,2,23,2,15,6,1,3,13,5,29,7,69,56,2,2,7,15,2,2,1,31,12,3,5,2,3,1,3,7,11,7,6,3,6,4,7,23,5,1,14,2,5,5,3,10,9,146,1,14,48,10,3,1,2,5,39,6,1,2,20,8,1,3,3,4,1,2,4,7,1,1,1,2,3,2,1,5,6,7,7,2,4,6,3,1,1,6,2,9,11,11,4,3,13,5,25,6,5,2,5,3,1,2,2,8,7,3,3,4,6,3,3,2,1,14,2,7,12,10],"eh":[14,11,9,37,14,18,23,5,2,7,8,4,14,1,31,6,58,1,2,2,7,20,7,1,10,4,10,23,10,11,9,4,2,4,15,12,27,39,7,8,4,5,2,12,3,8,4,7,3,7,1,1,3,1,7,4,1,2,4,1,2,13,2,6,4,13,11,10,7,12,4,1,9,12,5,13,5,8,3,18,2,8,2,1,19,2,2,12,4,20,5,8,32,7,7,21,2,7,2,16,4,9,8,6,7,2,10,3,4,2,17,18,10,12,10,6,11,19,11,11,8,2,5,9,23,50,13,7,34,22,9,4,3,10,5,7,5,4,18,11,69,19,23,7,10,5,3,2,7,4,1,12,1,24,22,13,10,6,7,8,9,5,8,8,5,9,6,9,56,20,10,16,17,7,14,8,5,22],"cm":[6,1,4,1,5,1,12,5,8,4,6,20,7,8,5,5,12,6,3,1,1,3,1,1,5,4,2,26,3,14,4,2,18,35,14,2,22,1,17,2,5,15,29,11,23,38,2,1,10,1,7,2,1,5,2,7,2,5,1,12,16,1,2,1,24,42,38,2,6,6,23,45,20,7,25,3,11,8,14,2,32,13,4,5,7,9,39,33,6,16,9,14,18,9,6,6,30,11,8,3,11,5,11,16,6,3,12,21,6,11,24,5,3,7,6,2,7,4,6,2,12,9,15,1,10,23,2,2,22,7,14,6,7,6,2,2,3,8,4,15,20,3,4,4,7,25,5,2,31,7,3,1,20,32,44,7,13,9,4,3,6,7,6,8,1,1,2,2,2,2,17,9,4,5,63,51,5,3,1,1,3,12,9,2,10,2,4,6,1,18,4,16,1,3,11,5,7,15,4,12,2,15,10,11,12,4,21,1,10,3,7,9,2,13,8,14,7,25,6,18,1,4,5,2,6,6,39,20,2,10,28,23,1,4,28,9,2,3,2,4,12,10,25,1,11,17,5,13,5,26,2,2,33,1,9,4,7,2,9,11,4,21,3,8,1,5,27,5,6,3,5,18,18,1,31,6,15,10,6,12,10,1,3,4,10,5,3,2,5,28,28,22,4,6,3,8,1,2,1,4,10,2,15,6,7,8,7,7,5,3,6,20,4,2,4,3,4,1,1,5,2,2,1,1,1,1,2,2,1,5,3,6,8,4,3,4,20,9,11,8,8,1,2,4,2,19,1,8,5,1,1,1,4,6,3,10,3,12,12,10,8,13,11,9,2,4,6,1,11,7,4,3,3,6,9,1,1,9,4,4,1,1,5,4,2,4,1,16,20,12,12,1,4,6,1,10,2,5,5,4,2,1,3,2,3,5,4,2,4,38,7,5,3,2,3,1,7,18,3,44,14,2,4,11,5,1,10]};
+function plural(w){ return ({"סעיף":"סעיפים","פסקה":"פסקאות","הלכה":"הלכות","פסוק":"פסוקים","משנה":"משניות","פרק":"פרקים","סימן":"סימנים"})[w]||w||""; }
+function saOf(c){ return c&&c.sa? SA.find(x=>x[3]===c.sa) : null; }
+function saTrack(pi,startSim,per,wait,id,name,days){ const p=SA[pi], L=SAL[p[3]]; let st=1; for(let i=0;i<startSim-1 && i<L.length;i++) st+=L[i];
+  const c={id:id||"u"+Date.now().toString(36), name:name||"שולחן ערוך "+p[0], sa:p[3], struct:[{t:"שולחן ערוך "+p[0], ref:p[4], lens:L}], by:"seg", cu:"סימן", su:"סעיף", unit:"סעיף",
+    total:L.reduce((a,b)=>a+b,0), per:Math.max(1,per), start:st, from:toISO(nextStudy(todayUTC())), wait:!!wait, on:true, link:""}; if(days) c.days=days; return c; }
 // a book whose structure came from Sefaria: struct=[{t:Hebrew node title, ref:English ref, lens:[segments per chapter]}], by="ch"|"seg"
 const cFlat={};
 function cUnits(c){ const key=c.id+"|"+c.by; if(cFlat[key]) return cFlat[key]; const out=[];
@@ -291,6 +308,14 @@ async function sfFind(q,direct,heName){ const box=$("#sf-res"); box.innerHTML=`<
       S.custom=S.custom||[]; S.custom.push(c); SF=null; save(); toast("הספר נוסף"); refresh(); };
   }catch(e){ box.innerHTML=`<p class="note">לא הצלחתי להתחבר לספריא. בדוק את החיבור לאינטרנט ונסה שוב, או הוסף את הספר ידנית למטה.</p>`; }
 }
+function posPick(c,nx){ const F=cUnits(c), l=F[Math.max(0,Math.min(F.length-1,nx-1))], multi=c.struct.length>1;
+  return `<div class="field"><span>ממשיכים מ־</span><div class="row" style="gap:6px;flex-wrap:nowrap">
+    ${multi?`<select data-cpn="${c.id}">${c.struct.map((x,i)=>`<option value="${i}" ${i===l.ni?"selected":""}>${esc(x.t||"")}</option>`).join("")}</select>`:""}
+    <input type="number" min="1" data-cpc="${c.id}" value="${l.ch}" style="width:70px" aria-label="${esc(c.cu||"פרק")}"><span style="align-self:center">${esc(c.cu||"פרק")}</span>
+    ${c.by==="seg"?`<input type="number" min="1" data-cps="${c.id}" value="${l.sg}" style="width:60px" aria-label="${esc(c.su||"")}"><span style="align-self:center">${esc(c.su||"")}</span>`:""}</div></div>`; }
+function posRead(c){ const F=cUnits(c), q=s=>document.querySelector(s), ni=q(`[data-cpn="${c.id}"]`)? +q(`[data-cpn="${c.id}"]`).value : 0,
+    ch=parseInt((q(`[data-cpc="${c.id}"]`)||{}).value)||1, sg=parseInt((q(`[data-cps="${c.id}"]`)||{}).value)||1;
+  let i=F.findIndex(x=>x.ni===ni && x.ch===ch && (c.by!=="seg"||x.sg===sg)); if(i<0) i=F.findIndex(x=>x.ni===ni && x.ch>=ch); return i<0? 1 : i+1; }
 function cPortion(k,t){ const c=cGet(k); if(!c) return {units:[]}; if(trackOff(k,t)) return {off:true,units:[]};
   const a=parseISO(c.from); if(t<a) return {before:true,units:[]};
   const st=(c.start-1)+effDays(k,a,t)*c.per+extraBefore(k,c.from,t), cnt=c.per+extraOn(k,toISO(t));
@@ -391,6 +416,11 @@ function migrate(x){
   return x;
 }
 function postMigrate(){ let ch=false;
+  if(!S.migSA){ (S.custom||[]).forEach((c,i)=>{ const u=(c.links&&c.links[0]&&c.links[0].u)||c.tpl||"", m=u.match(/alhatorah\.org\/Full\/([A-Za-z_]+)\//); if(!m||c.struct) return;
+      const pi=SA.findIndex(x=>x[1]===m[1]); if(pi<0) return; const k="c:"+c.id; let sim=c.start; try{ const P=cPortion(k,startDay(k)); if(P.units.length) sim=P.units[0].n; else if(P.finished) sim=c.total; }catch(e){}
+      const avg=SAL[SA[pi][3]].reduce((a,b)=>a+b,0)/SA[pi][2], nc=saTrack(pi,sim,Math.round(c.per*avg),c.wait,c.id,c.name,c.days); nc.on=c.on; nc.from=toISO(startDay(k));
+      S.custom[i]=nc; delete S.extra[k]; delete cFlat[c.id+"|seg"]; });
+    S.migSA=true; ch=true; }
   if(!S.migDaily){ const sg=S.tracks.tanakh.segs; if(sg&&sg.length) sg[sg.length-1].daily=true; S.migDaily=true; ch=true; }
   // 17 Nov: positions the learner reported after progress was lost — Yoma 11a, Orot HaTeshuvah 13:10
   if(!S.migFix17){ const d="2026-11-17";
@@ -475,10 +505,10 @@ function groupBy(us,f){ const out=[]; let cur=null,key=null; us.forEach(u=>{ con
 // chapter groups: {key, title, label, href, units}
 function groups(k,us){
   if(k[1]===":" && (cGet(k)||{}).struct){ const c=cGet(k), F=cUnits(c), loc=u=>F[u.n-1]||F[F.length-1], multi=c.struct.length>1;
-    const nm=l=>c.name+(multi&&c.struct[l.ni].t&&c.struct[l.ni].t!==c.name?" · "+c.struct[l.ni].t:""), base=l=>SITE+encodeURIComponent(c.struct[l.ni].ref.replace(/ /g,"_"));
+    const nm=l=>(c.sa? "" : c.name)+(multi&&c.struct[l.ni].t&&c.struct[l.ni].t!==c.name?" · "+c.struct[l.ni].t:""), base=l=>SITE+encodeURIComponent(c.struct[l.ni].ref.replace(/ /g,"_"));
     if(c.by==="seg") return groupBy(us,u=>{ const l=loc(u); return l.ni+"."+l.ch; }).map(g=>{ const a=loc(g[0]), z=loc(g[g.length-1]);
-      return {key:k+"."+a.ni+"."+a.ch, xkey:k+"."+a.ni+"."+a.ch+"."+a.sg+"-"+z.sg, units:g, title:nm(a)+" "+c.cu+" "+num(a.ch),
-        label:nm(a)+" "+c.cu+" "+num(a.ch)+", "+c.su+" "+num(a.sg)+(z.sg>a.sg?"–"+num(z.sg):""), href:base(a)+"."+a.ch+"."+a.sg+(z.sg>a.sg?"-"+z.sg:"")+"?lang=he"}; });
+      return {key:k+"."+a.ni+"."+a.ch, xkey:k+"."+a.ni+"."+a.ch+"."+a.sg+"-"+z.sg, units:g, title:(nm(a)+" "+c.cu+" "+num(a.ch)).trim(),
+        label:(nm(a)+" "+c.cu+" "+num(a.ch)+", "+(z.sg>a.sg? plural(c.su)+" "+num(a.sg)+"–"+num(z.sg) : c.su+" "+num(a.sg))).trim(), href:base(a)+"."+a.ch+"."+a.sg+(z.sg>a.sg?"-"+z.sg:"")+"?lang=he"}; });
     return us.map(u=>{ const l=loc(u), lb=nm(l)+" "+c.cu+" "+num(l.ch); return {key:k+"."+l.ni+"."+l.ch, xkey:k+"."+l.ni+"."+l.ch, units:[u], title:lb, label:lb, href:base(l)+"."+l.ch+"?lang=he"}; }); }
   if(k[1]===":"){ const c=cGet(k)||{name:"",unit:"פרק"};
     return us.map(u=>({key:k+"."+u.n, xkey:k+"."+u.n, units:[u], title:c.name+" "+c.unit+" "+num(u.n), label:c.name+" "+c.unit+" "+num(u.n),
@@ -661,22 +691,20 @@ function notesHtml(q){ q=(q||"").trim(); const all=entries(), hit=q? all.filter(
   return hit.slice(0,80).map(e=>{ let body=e.text; if(q){ const i=body.indexOf(q); if(i>120) body="…"+body.slice(i-100); } if(e.x&&body.length>500) body=body.slice(0,500)+"…";
     return `<div class="sep"><b>${esc(e.title)}</b><div class="note" style="white-space:pre-wrap;color:var(--ink)">${esc(body)}</div></div>`; }).join("")+(hit.length>80?`<p class="note">מוצגות 80 תוצאות ראשונות.</p>`:""); }
 function exportText(){ return entries().map(e=>"== "+e.title+" ==\n"+e.text).join("\n\n"); }
-// =================== READER: texts and commentaries from Sefaria, inside the app ===================
-const COMM={gemara:[["Steinsaltz","שטיינזלץ"],["Rashi","רש״י"],["Tosafot","תוספות"]],tanakh:[["Steinsaltz","שטיינזלץ"],["Rashi","רש״י"],["Radak","רד״ק"]],
-  parasha:[["Rashi","רש״י"],["Ramban","רמב״ן"],["Onkelos","אונקלוס"]],mishnah:[["Bartenura","ברטנורא"],["Rambam","רמב״ם"]],tehillim:[["Rashi","רש״י"],["Radak","רד״ק"]]};
-const LOCAL_BASE=["tanakh","parasha","mishnah"]; // their text is already in the card
-function srefOf(k,g){ const u=g.units[0];
-  if(k==="kook" && u.b===0) return null; // Sefaria has no Hebrew text for these chapters
-  if(k==="gemara"){ const m=MAS[u.mi]; if(m[4]) return null; return m[0]+" "+u.d+(u.amud? u.amud : "a-"+u.d+"b"); }
-  if(g.href && g.href.indexOf(SITE)===0) return decodeURIComponent(g.href.slice(SITE.length).split("?")[0]).replace(/_/g," ");
-  return null; }
-function commRef(c,base){ return c==="Onkelos"? "Onkelos "+base : c+" on "+base; }
+// =================== READER: each chapter on its own, commentary per verse ===================
+const COMM={gemara:[["Steinsaltz","שטיינזלץ"],["Rashi","רש״י"],["Tosafot","תוספות"]],
+  tanakh:[["Steinsaltz","שטיינזלץ"],["Rashi","רש״י"],["Radak","רד״ק"],["Metzudat David","מצודת דוד"]],
+  parasha:[["Rashi","רש״י"],["Ramban","רמב״ן"],["Onkelos","אונקלוס"]],
+  mishnah:[["Bartenura","ברטנורא"],["Rambam","רמב״ם"]],
+  rambam:[["Steinsaltz","שטיינזלץ"]],
+  tehillim:[["Rashi","רש״י"],["Radak","רד״ק"],["Metzudat David","מצודת דוד"]]};
+function commRef(c,base){ return (c==="Steinsaltz" && /^Mishneh Torah/.test(base))? "Steinsaltz on "+base : c==="Onkelos"? "Onkelos "+base : c+" on "+base; }
 const TXC={};
 function txKey(ref){ return "tx:"+ref; }
 function txGet(ref){ if(ref in TXC) return TXC[ref]; try{ const v=localStorage.getItem(txKey(ref)); if(v){ TXC[ref]=JSON.parse(v); return TXC[ref]; } }catch(e){} return undefined; }
 function txPut(ref,val){ TXC[ref]=val; let idx=[]; try{ idx=JSON.parse(localStorage.getItem("txidx")||"[]"); }catch(e){}
   idx=idx.filter(x=>x!==ref); idx.push(ref);
-  for(let tries=0;tries<4;tries++){ try{ while(idx.length>120){ localStorage.removeItem(txKey(idx.shift())); } localStorage.setItem(txKey(ref),JSON.stringify(val)); localStorage.setItem("txidx",JSON.stringify(idx)); return; }
+  for(let tries=0;tries<4;tries++){ try{ while(idx.length>200){ localStorage.removeItem(txKey(idx.shift())); } localStorage.setItem(txKey(ref),JSON.stringify(val)); localStorage.setItem("txidx",JSON.stringify(idx)); return; }
     catch(e){ const drop=idx.splice(0,Math.max(1,Math.floor(idx.length/2))); drop.forEach(r=>{ try{ localStorage.removeItem(txKey(r)); }catch(x){} }); } } }
 async function sfText(ref){ const c=txGet(ref); if(c!==undefined) return c;
   const path="v3/texts/"+encodeURIComponent(ref)+"?version=hebrew&return_format=strip_only_footnotes"; let j=null;
@@ -689,33 +717,80 @@ function clean(h){ const imgs=[]; h=String(h).replace(/<img[^>]*src="(data:image
   return cleanTags(h).replace(/\u0001(\d+)\u0001/g,(m,i)=>`<img src="${imgs[+i]}" style="display:block;max-width:100%;margin:6px auto;background:#fff">`); }
 function cleanTags(h){ return String(h).replace(/<span class="mam-kq-k">[\s\S]*?<\/span>/g,"").replace(/<(\/?)([a-zA-Z0-9]+)[^>]*>/g,(m,sl,t)=>ALLOW.includes(t.toLowerCase())? "<"+sl+t.toLowerCase()+">" : (t.toLowerCase()==="p"||t.toLowerCase()==="div"? " " : "")); }
 function leaves(x,out,depth){ if(Array.isArray(x)){ x.forEach((y,i)=>{ if(depth>0 && i>0 && Array.isArray(y) && out.length) out.push(null); leaves(y,out,depth+1); }); } else if(x!=null && String(x).trim()) out.push(String(x)); return out; }
-function textHtml(t,cm){ const L=leaves(t,[],0); if(!L.length) return `<p class="note">אין טקסט לקטע הזה.</p>`;
-  return L.map(x=>x===null? `<div class="rsep"></div>` : `<p class="rtext${cm?" cm":""}">${clean(x)}</p>`).join("").replace(/(<div class="rsep"><\/div>)+/g,'<div class="rsep"></div>'); }
-function readerBox(k,g,gi,d){ const ref=srefOf(k,g), cm=COMM[k]||[], local=LOCAL_BASE.includes(k)||(k==="tehillim"&&IS_APK&&tnkBook(26));
-  if(!ref && !g.tanya) return "";
-  if(local && !cm.length) return "";
-  return `<details class="box" data-id="rd-${esc(g.xkey)}" data-rd="${k}|${gi}|${d}"><summary>${local?"פירושים כאן":"קריאה כאן"}</summary>
-    ${cm.length?`<div class="rd-bar">${local?"":`<button class="btn small on" data-rdsel="">המקור</button>`}${cm.map(c=>`<button class="btn small" data-rdsel="${c[0]}">${c[1]}</button>`).join("")}</div>`:""}
-    <div class="rd-out"><p class="note">${local?"בחרו פירוש.":"טוען…"}</p></div></details>`; }
-function tehLocal(u){ const T=tnkBook(26); if(!T) return null; const out=[];
-  for(let c=u.a[0]; c<=u.b[0]; c++){ const ch=T[c-1]; if(!ch) continue; const f=(c===u.a[0]&&u.a[1])?u.a[1]:1, to=(c===u.b[0]&&u.b[1])?u.b[1]:ch.length;
-    out.push(`<p style="font-weight:700;color:var(--tc);margin:10px 0 4px">מזמור ${gem(c)}</p>`); for(let v=f;v<=to;v++) out.push(`<p class="mtext"><b>${gem(v)}</b>${esc(ch[v-1])}</p>`); }
-  return out.join(""); }
-async function loadReader(box,sel){ const [k,gi,d]=box.dataset.rd.split("|"), P=trackPortion(k,parseISO(d)), g=groups(k,P.units)[+gi], out=box.querySelector(".rd-out"); if(!g||!out) return;
-  box.querySelectorAll("[data-rdsel]").forEach(b=>b.classList.toggle("on",b.dataset.rdsel===(sel||"")));
-  const local=LOCAL_BASE.includes(k);
-  if(!sel && local) return;
-  if(!sel && k==="tehillim" && IS_APK){ const h=tehLocal(g.units[0]); if(h){ out.innerHTML=h; return; } }
-  const base=srefOf(k,g), ref= sel? commRef(sel,base) : (g.tanya? g.tanya.ref : base);
-  out.innerHTML=`<p class="note">טוען…</p>`;
-  try{ const r=await sfText(ref); let t=r.t;
-    if(!sel && g.tanya && Array.isArray(t)){ const f=Math.max(0,g.tanya.from-1); t=t.slice(f, g.tanya.to? g.tanya.to : undefined); }
-    out.innerHTML=textHtml(t,!!sel)+`<p class="src">${esc(ref)}${r.src?" · "+esc(r.src):""} · מתוך ספריא</p>`;
-  }catch(e){ out.innerHTML=`<p class="note">${navigator.onLine===false?"אין חיבור לאינטרנט. טקסט שנפתח פעם אחת נשמר ונפתח גם בלי חיבור.":"לא הצלחתי לטעון את הטקסט מספריא כרגע. נסו שוב מאוחר יותר."}</p>`; } }
-document.addEventListener("toggle",e=>{ const b=e.target; if(b && b.dataset && b.dataset.rd && b.open){ const on=b.querySelector("[data-rdsel].on"); const first=(LOCAL_BASE.includes(b.dataset.rd.split("|")[0]))? null : (on? on.dataset.rdsel : ""); if(first!==null) loadReader(b,first); } },true);
+// the reading pieces of a day: one per chapter (or amud), each with its own commentators
+function pieces(k,t){ const P=trackPortion(k,t); if(!P.units||!P.units.length) return []; const G=groups(k,P.units), out=[];
+  G.forEach((g,gi)=>{
+    if(k==="gemara") g.units.forEach(u=>{ const m=MAS[u.mi]; if(m[4]) return; (u.amud?[u.amud]:["a","b"]).forEach(am=>out.push({gi,ref:m[0]+" "+u.d+am,title:m[1]+" דף "+gem(u.d)+" "+(am==="a"?"ע״א":"ע״ב"),num:false})); });
+    else if(k==="tanakh") g.units.forEach(u=>out.push({gi,ref:TNK[u.b][0]+"."+(u.c+1),title:TNK[u.b][1]+" פרק "+gem(u.c+1),loc:()=>{ const T=tnkBook(u.b); return T&&T[u.c]? T[u.c].map((v,i)=>[gem(i+1),esc(v)]) : null; }}));
+    else if(k==="parasha") g.units.forEach(u=>{ const A=PAR[u.pi][1][u.a]; for(let c=A[1]; c<=A[3]; c++){ const cc=c;
+        out.push({gi,ref:TNK[A[0]][0]+"."+c+"."+(c===A[1]?A[2]:1)+"-"+(c===A[3]?A[4]:999),title:ALIYA[u.a]+" · "+TNK[A[0]][1]+" "+gem(c),
+          lo:c===A[1]?A[2]:1, hi:c===A[3]?A[4]:0, off:c===A[1]?A[2]:1, loc:function(){ const T=tnkBook(A[0]); if(!T||!T[cc-1]) return null; const hi=this.hi||T[cc-1].length; const o=[]; for(let v=this.lo; v<=hi; v++) o.push([gem(v),esc(T[cc-1][v-1])]); return o; }}); } });
+    else if(k==="mishnah") groupBy(g.units,u=>u.t+"."+u.p).forEach(us=>{ const a=us[0], z=us[us.length-1];
+        out.push({gi,off:a.m+1,ref:"Mishnah "+MISH[a.t][0]+"."+(a.p+1)+"."+(a.m+1)+"-"+(z.m+1),title:"משנה "+MISH[a.t][1]+" פרק "+gem(a.p+1),loc:()=>MTEXT? us.map(u=>[gem(u.m+1),esc(MTEXT[u.t][2][u.p][u.m])]) : null}); });
+    else if(k==="rambam") g.units.forEach(u=>{ const nm=LEARN.names[u.n]; out.push({gi,ref:"Mishneh Torah, "+nm[0]+"."+u.p,title:nm[1]+" פרק "+gem(u.p)}); });
+    else if(k==="tehillim") g.units.forEach(u=>{ for(let c=u.a[0]; c<=u.b[0]; c++){ const f=(c===u.a[0]&&u.a[1])?u.a[1]:0, to=(c===u.b[0]&&u.b[1])?u.b[1]:0, cc=c;
+        out.push({gi,off:f||1,ref:"Psalms."+c+(f||to?"."+(f||1)+"-"+(to||999):""),title:"תהילים "+gem(c)+(f||to?" ("+gem(f||1)+"–"+(to?gem(to):"סוף")+")":"")+(u.lab?" · "+u.lab:""),
+          loc:()=>{ const T=IS_APK&&tnkBook(26); if(!T||!T[cc-1]) return null; const o=[]; for(let v=f||1; v<=(to||T[cc-1].length); v++) o.push([gem(v),esc(T[cc-1][v-1])]); return o; }}); } });
+    else if(k==="tanya") out.push({gi,ref:g.tanya.ref,title:g.title+(g.units[0].lab?" · "+g.units[0].lab:""),from:g.tanya.from,to:g.tanya.to,num:false});
+    else if(k[1]===":"){ const c=cGet(k); if(!c||!c.struct) return; const F=cUnits(c), l0=F[g.units[0].n-1], l1=F[g.units[g.units.length-1].n-1]; if(!l0) return; const nd=c.struct[l0.ni], sa=saOf(c);
+      if(c.by==="seg") out.push({gi,ref:nd.ref+" "+l0.ch+":"+l0.sg+(l1.sg>l0.sg?"-"+l1.sg:""),title:(sa?"סימן ":c.cu+" ")+num(l0.ch)+", "+(l1.sg>l0.sg? plural(c.su)+" "+num(l0.sg)+"–"+num(l1.sg) : c.su+" "+num(l0.sg)),off:l0.sg,sim:nd.ref+" "+l0.ch,a:l0.sg,b:l1.sg,sa});
+      else g.units.forEach(u=>{ const l=F[u.n-1]; out.push({gi,ref:c.struct[l.ni].ref+" "+l.ch,title:g.title}); }); }
+    else if(k==="kook"){ const u=g.units[0]; if(u.b===1) out.push({gi,ref:decodeURIComponent(g.href.slice(SITE.length).split("?")[0]).replace(/_/g," "),title:g.title,num:false}); }
+  });
+  out.forEach((p,i)=>{ p.k=k; p.i=i; p.d=toISO(t); p.cm=p.sa? p.sa[5] : (COMM[k]||[]); });
+  return out; }
+function pcHasReader(k){ return k!=="kook" || true; }
+const PC={}; // per piece: lines, commentary per line, open lines
+function selKey(k){ const c=k[1]===":"&&cGet(k); return c&&c.sa? "sa:"+c.sa : k; }
+function rdSel(k){ k=selKey(k); try{ return (JSON.parse(localStorage.getItem("rdsel")||"{}")[k])||[]; }catch(e){ return []; } }
+function setRdSel(k,v){ k=selKey(k); let o={}; try{ o=JSON.parse(localStorage.getItem("rdsel")||"{}"); }catch(e){} o[k]=v; localStorage.setItem("rdsel",JSON.stringify(o)); }
+function pieceBox(p){ const sel=rdSel(p.k);
+  return `<details class="box rdp" data-id="pc-${esc(p.ref)}" data-pc="${p.k}|${p.d}|${p.i}"><summary>${esc(p.title)}</summary>
+    ${p.cm.length?`<div class="rd-bar">${p.cm.map(c=>`<button class="btn small ${sel.includes(c[0])?"on":""}" data-rdsel="${p.k}|${c[0]}">${c[1]}</button>`).join("")}</div>
+    <p class="hint" style="margin:0 0 6px">לחיצה על ${p.k==="gemara"||p.k==="tanya"?"שורה":p.k==="mishnah"?"משנה":p.k==="rambam"?"הלכה":"פסוק"} מציגה את הפירושים עליה. פרשן מסומן מוצג לאורך כל הפרק.</p>`:""}
+    <div class="rd-out"><p class="note">טוען…</p></div>
+    <p class="src"><a style="color:var(--tc)" href="${SITE+encodeURIComponent(p.ref.replace(/ /g,"_"))}?lang=he" target="_blank" rel="noopener">פתח בספריא ↗</a></p></details>`; }
+function pieceOf(box){ const [k,d,i]=box.dataset.pc.split("|"); return pieces(k,parseISO(d))[+i]; }
+function linesFrom(t,p){ let L=Array.isArray(t)? t : [t]; if(p.from) L=L.slice(Math.max(0,p.from-1), p.to? p.to : undefined);
+  return L.map((x,i)=>[p.num===false? "" : num((p.off||1)+i), clean(Array.isArray(x)? leaves(x,[],0).filter(Boolean).join(" ") : x)]); }
+function perLine(t,n){ if(n===1) return [leaves(t,[],0).filter(Boolean)]; const A=Array.isArray(t)? t : [t]; const o=[]; for(let i=0;i<n;i++) o.push(leaves(A[i]===undefined? [] : A[i],[],0).filter(Boolean)); return o; }
+async function openPiece(box){ const p=pieceOf(box); if(!p) return; const st=PC[p.ref]||(PC[p.ref]={comm:{},open:{}});
+  if(!st.lines){ const loc=p.loc&&p.loc(); if(loc) st.lines=loc;
+    else { try{ const r=await sfText(p.ref); st.lines=linesFrom(r.t,p); }catch(e){ box.querySelector(".rd-out").innerHTML=`<p class="note">${navigator.onLine===false?"אין חיבור לאינטרנט. טקסט שנפתח פעם אחת נשמר ונפתח גם בלי חיבור.":"לא הצלחתי לטעון את הטקסט מספריא כרגע. נסו שוב מאוחר יותר."}</p>`; return; } } }
+  drawPiece(box,p,st); }
+async function sfLinks(ref){ const key="L|"+ref, c=txGet(key); if(c!==undefined) return c.t;
+  let j=null; const path="links/"+encodeURIComponent(ref)+"?with_text=0";
+  try{ const r=await fetch("https://www.sefaria.org/api/"+path); j=await r.json(); }catch(e){ j=await sfGet(path); }
+  if(!Array.isArray(j)) throw new Error("links"); const v=j.map(x=>[x.anchorRef,x.ref,x.index_title]); txPut(key,{t:v}); return v; }
+async function linkComm(p,name,n){ const tail=p.sa[4].replace("Shulchan Arukh, ",""), L=await sfLinks(p.sim), per=[]; for(let i=0;i<n;i++) per.push([]);
+  const ok=t=> t===name || (t.indexOf(name+" on ")===0 && t.indexOf(tail)>=0) || (t.indexOf(name)===0 && t.indexOf(" on ")<0);
+  const items=[]; L.forEach(([an,rf,it])=>{ if(!ok(it||"")) return; const sf=parseInt(String(an).split(":").pop()); if(!(sf>=p.a&&sf<=p.b)) return;
+    const sp=rf.lastIndexOf(" "), book=rf.slice(0,sp), addr=rf.slice(sp+1), [st,en]=addr.split("-"), ns=st.split(":").map(Number); items.push({line:sf-p.a,book,ns,en:en? +en.split(":").pop() : 0}); });
+  const books={}; items.forEach(x=>{ const r=x.book+" "+x.ns[0]; books[r]=1; });
+  const texts={}; for(const r of Object.keys(books)){ try{ texts[r]=(await sfText(r)).t; }catch(e){} }
+  const seen={}; items.sort((a,b)=>a.line-b.line||a.ns[a.ns.length-1]-b.ns[b.ns.length-1]).forEach(x=>{ let T=texts[x.book+" "+x.ns[0]]; if(T===undefined) return;
+    for(let d=1; d<x.ns.length-1; d++) T=(T||[])[x.ns[d]-1]; const last=x.ns[x.ns.length-1], to=x.en||last;
+    for(let q=last;q<=to;q++){ const id=x.line+"|"+x.book+"|"+x.ns.slice(0,-1).join(":")+"|"+q; if(seen[id]) continue; seen[id]=1; const v=Array.isArray(T)? T[q-1] : (q===last? T : null); if(v==null) continue;
+      const tx=leaves(v,[],0).filter(Boolean).join(" "); if(tx.trim()) per[x.line].push(`<span class="rn">(${gem(q)})</span>`+tx); } });
+  return per; }
+function needComm(p,st,names){ names.forEach(c=>{ if(st.comm[c]!==undefined) return; st.comm[c]="…";
+  (p.sa? linkComm(p,c,st.lines.length) : sfText(commRef(c,p.ref)).then(r=>perLine(r.t,st.lines.length))).then(v=>{ st.comm[c]=v; }).catch(()=>{ st.comm[c]="!"; }).then(()=>{ document.querySelectorAll(`details[data-pc]`).forEach(b=>{ if(b.open){ const q=pieceOf(b); if(q&&q.ref===p.ref) drawPiece(b,q,st); } }); }); }); }
+function drawPiece(box,p,st){ const sel=rdSel(p.k).filter(c=>p.cm.some(x=>x[0]===c)), want=new Set(sel); Object.keys(st.open).forEach(i=>{ if(st.open[i]) p.cm.forEach(c=>want.add(c[0])); });
+  needComm(p,st,[...want]);
+  const nm=c=>(p.cm.find(x=>x[0]===c)||[c,c])[1];
+  const block=(i,names,all)=>{ const parts=names.map(c=>{ const v=st.comm[c]; if(v==="…") return `<div class="cmb"><b class="cn">${nm(c)}</b> <span class="note">טוען…</span></div>`;
+      if(v==="!"||!v) return "";
+      const L=v[i]||[]; if(!L.length) return "";
+      return `<div class="cmb"><b class="cn">${nm(c)}</b> ${L.map(clean).join("<br>")}</div>`; }).join(""); return parts; };
+  box.querySelector(".rd-out").innerHTML=st.lines.map((l,i)=>{ const op=!!st.open[i];
+    let cb=op? block(i,p.cm.map(c=>c[0]),true) : block(i,sel,false);
+    if(op && !cb) cb=`<div class="cmb"><span class="note">${p.cm.some(c=>st.comm[c[0]]==="!")?"לא הצלחתי לטעון חלק מהפירושים.":"אין פירושים על המקום הזה."}</span></div>`;
+    return `<div class="rl${op?" op":""}${p.cm.length?" tap":""}" data-li="${i}">${l[0]?`<span class="rn">${l[0]}</span>`:""}${l[1]}</div>${cb}`; }).join(""); }
+document.addEventListener("toggle",e=>{ const b=e.target; if(b && b.dataset && b.dataset.pc && b.open) openPiece(b); },true);
+function piecesHtml(k,t,gi){ return pieces(k,t).filter(p=>gi===undefined||p.gi===gi).map(pieceBox).join(""); }
 // fetch today's texts ahead, so they open without internet later
 function prefetch(){ if(navigator.onLine===false) return; const t=todayUTC(), jobs=[];
-  enabled().forEach(k=>{ if(LOCAL_BASE.includes(k)||k==="tehillim") return; const P=trackPortion(k,nextOn(k,t)); groups(k,P.units).forEach(g=>{ const r=g.tanya? g.tanya.ref : srefOf(k,g); if(r && txGet(r)===undefined) jobs.push(r); }); });
+  enabled().forEach(k=>{ const sel=rdSel(k); pieces(k,nextOn(k,t)).forEach(p=>{ if(!(p.loc&&p.loc()) && txGet(p.ref)===undefined) jobs.push(p.ref); if(!p.sa) sel.forEach(c=>{ const r=commRef(c,p.ref); if(txGet(r)===undefined) jobs.push(r); }); }); });
   let i=0; const next=()=>{ if(i>=jobs.length) return; sfText(jobs[i++]).catch(()=>{}).then(()=>setTimeout(next,700)); }; next(); }
 let MTEXT=window.MISHNAH_TEXT||false, mLoading=null;
 function loadMishnah(){ if(MTEXT||mLoading) return mLoading; mLoading=fetch("mishnah.json").then(r=>r.json()).then(j=>{ MTEXT=j; }).catch(()=>{ MTEXT=false; }); return mLoading; }
@@ -736,7 +811,7 @@ function sysText(){ const extra=(llmCfg().sys||"").trim(); return SYS_BASE+(extr
 function sourceText(k,g){ const u=g.units;
   if(k==="mishnah" && MTEXT) return u.map(x=>"("+gem(x.m+1)+") "+MTEXT[x.t][2][x.p][x.m]).join("\n");
   if(k==="tanakh"||k==="parasha"){ const vs=versesFor(k,u); if(vs) return vs.map(x=>"("+x[0]+") "+x[1]).join("\n"); }
-  const r=srefOf(k,g)||(g.tanya&&g.tanya.ref), c=r&&txGet(r); if(c){ let t=c.t; if(g.tanya&&Array.isArray(t)) t=t.slice(Math.max(0,g.tanya.from-1), g.tanya.to||undefined); return leaves(t,[],0).filter(Boolean).map(x=>x.replace(/<[^>]+>/g,"")).join("\n").slice(0,12000); }
+  if(g._t!==undefined){ const ps=pieces(k,g._t).filter(p=>p.gi===g._gi); const txt=ps.map(p=>{ const c=txGet(p.ref); if(!c) return ""; return linesFrom(c.t,p).map(l=>l[1].replace(/<[^>]+>/g,"")).join("\n"); }).filter(Boolean).join("\n"); if(txt) return txt.slice(0,12000); }
   return ""; }
 function askPrompt(k,g,q,extra){ const src=sourceText(k,g)||extra||"";
   return "המקור: "+g.label+".\n"+(src?"לשון המקור:\n"+src+"\n\n":"")+"שאלת הלומד: "+q+"\n\nענה על השאלה במישרין, עד 250 מילים. אם התשובה תלויה במחלוקת, הצג את הצדדים. אם אינך יודע, אמור זאת."; }
@@ -802,7 +877,7 @@ function expPrompt(k,g,extra){
     (sourceText(k,g)? "לשון המקור:\n"+sourceText(k,g)+"\n\n" : "")+"כתוב: ## תוכן ועיקרי הדברים, ## מושגים חשובים, ## הקשר רחב, ## שאלות לעיון. אם אינך בטוח בתוכן המדויק של יחידה זו בספר, אמור זאת בשורה הראשונה.";
 }
 async function runExp(k,gi,t,q){
-  const P=trackPortion(k,t), g=groups(k,P.units)[gi]; if(!g||!sampleFn||expBusy[g.xkey]) return;
+  const P=trackPortion(k,t), g=groups(k,P.units)[gi]; if(g){ g._t=t; g._gi=gi; } if(!g||!sampleFn||expBusy[g.xkey]) return;
   if(k==="mishnah" && !MTEXT) await loadMishnah();
   const extraEl=document.querySelector(`[data-kpaste="${g.xkey}"]`), extra=extraEl?extraEl.value.trim():"";
   const out=document.getElementById("x-"+expId(g.xkey)); expBusy[g.xkey]=true;
@@ -857,32 +932,29 @@ function trackCard(k,t){
     G.forEach((g,i)=>{ const u=g.units[0], m=MAS[u.mi], dk=gKey(u);
       h+=`<div class="${i?"sep":""}">${u.shab?'<div class="label">הדף של '+esc(u.lab||"שבת")+' – מקדימים</div>':""}
         <div class="big">${esc(m[1])} <small>דף</small> ${gem(u.d)}${u.amud?` <small>${u.amud==="a"?"ע״א":"ע״ב"}</small>`:""}</div>
-        <div class="row" style="margin-top:8px">${u.amud? linkBtn(gemSefaria(u.mi,u.d,u.amud),"פתח עם שטיינזלץ") : m[4]? linkBtn(gemSefaria(u.mi,u.d),"פתח בספריא")
-          : linkBtn(gemSefaria(u.mi,u.d,"a"),"עמוד א׳")+linkBtn(gemSefaria(u.mi,u.d,"b"),"עמוד ב׳")}</div>
-        ${readerBox(k,g,i,d)}
+        ${m[4]? `<div class="row" style="margin-top:8px">${linkBtn(gemSefaria(u.mi,u.d),"פתח בספריא")}</div>` : piecesHtml(k,t,i)}
         <div class="row" style="margin-top:8px"><button class="btn grow ${S.done[dk]?"ok":""}" data-gtoggle="${dk}">${S.done[dk]?"✓ למדתי":"סמן כנלמד"}</button></div>
         ${extras(k,g,i,d)}</div>`; });
     if(S.gemara.type==="custom") h+=moreRow("gemara",d,S.gemara.pace==="amud"?"עמוד נוסף":"דף נוסף");
     if(done) h+=siyum(k,P.units);
     return h+`</div>`;
   }
-  h+=`<div class="big">${G.map(g=>esc(g.label)).join(" · ")}</div><div class="row" style="margin-top:8px">${G.map(g=>g.links? g.links.map(l=>linkBtn(l.href,l.text)).join("") : (g.href? linkBtn(g.href, k==="tanakh"? g.label : "פתח בספריא"+(G.length>1?" · "+g.label:"")) : "")).join("")}</div>`;
+  const PS=pieces(k,t);
+  h+=`<div class="big">${G.map(g=>esc(g.label)).join(" · ")}</div>`+(PS.length? "" : `<div class="row" style="margin-top:8px">${G.map(g=>g.links? g.links.map(l=>linkBtn(l.href,l.text)).join("") : (g.href? linkBtn(g.href, k==="tanakh"? g.label : "פתח בספריא"+(G.length>1?" · "+g.label:"")) : "")).join("")}</div>`);
   if(k==="tanakh" && segDaily(k,t) && isOff(t+DAY)){ const N=portion(k,t+DAY); if(N.units.length) h+=`<p class="note">למחר (${esc(offLabel(t+DAY))}): ${esc(groups(k,N.units).map(g=>g.label).join(", "))}</p>`; }
-  if(k==="parasha") h+=`<p class="note">שניים מקרא: קוראים כל פסוק פעמיים, ואחריו תרגום או רש״י. הקישורים פותחים את העלייה בספריא עם הפירוש.</p>`;
+  if(k==="parasha") h+=`<p class="note">שניים מקרא: קוראים כל פסוק פעמיים, ואחריו תרגום או רש״י.</p>`;
   if(k==="parasha"){ const pi=P.units[0].pi, AL=PAR[pi][1], bk=TNK[AL[0][0]], full=bk[0]+"."+AL[0][1]+"."+AL[0][2]+"-"+(AL[6][3]!==AL[0][1]?AL[6][3]+"."+AL[6][4]:AL[6][4]);
     let all="";
     if(IS_APK && tnkBook(AL[0][0])) all=AL.map((x,i)=>{ const vs=versesFor("parasha",[{pi,a:i}]); return `<p style="font-weight:700;color:var(--tc);margin:10px 0 4px">${ALIYA[i]}</p>`+vs.map(v=>`<p class="mtext"><b>${v[0]}</b>${esc(v[1])}</p>`).join(""); }).join("");
     h+=`<details class="box" data-id="txt-parasha-all"><summary>כל פרשת ${esc(PAR[pi][0])}</summary>
-      <div class="row" style="margin-bottom:10px">${linkBtn(SITE+full+"?lang=he&with=Rashi","כל הפרשה עם רש״י")}${linkBtn(SITE+full+"?lang=he&with=Ramban","כל הפרשה עם רמב״ן")}</div>${all}</details>`; }
-  if((k==="tanakh"||k==="parasha") && IS_APK){ const vs=versesFor(k,P.units);
-    h+= vs? `<details class="box" data-id="txt-${k}"><summary>לשון הפסוקים</summary>${vs.map(x=>`<p class="mtext"><b>${x[0]}</b>${esc(x[1])}</p>`).join("")}</details>` : `<p class="hint">טוען את לשון הפסוקים…</p>`; }
+      ${all||`<p class="note"><a href="${SITE+full}?lang=he" target="_blank" rel="noopener">כל הפרשה בספריא</a></p>`}</details>`; }
+  if((k==="tanakh"||k==="parasha") && IS_APK) versesFor(k,P.units); // starts loading the local text
   if(k==="mishnah"){
     if(IS_APK && window.Android && Android.openApp) h+=`<div class="row" style="margin-top:8px"><button class="btn primary grow" data-kehati="1">פתח באפליקציית קהתי</button></div>
       <p class="note">האפליקציה של קהתי נפתחת במקום שבו עצרת בה. המנה של היום: ${G.map(g=>esc(g.label)).join(" · ")}.</p>`;
-    else h+=`<p class="note">הקישור פותח את המשנה בספריא עם ברטנורא ופירושים נוספים. פירוש קהתי לא זמין באתר פתוח.</p>`;
-    if(MTEXT) h+=`<details class="box" data-id="txt-mishnah"><summary>לשון המשניות</summary>${P.units.map(u=>`<p class="mtext"><b>${esc(MISH[u.t][1])} ${gem(u.p+1)}:${gem(u.m+1)}</b>${esc(MTEXT[u.t][2][u.p][u.m])}</p>`).join("")}</details>`;
+
   }
-  h+=G.map((g,gi)=>readerBox(k,g,gi,d)).join("");
+  h+=PS.map(pieceBox).join("");
   if(k==="rambam") h+=`<p class="hint">רמב״ם יומי לפי הלוח המקובל (${(S.tracks.rambam.mode||3)===1?"פרק אחד":"שלושה פרקים"} ביום). בשבת ובחגים המנה מצטרפת ליום שלפניהם.</p>`;
   if(k==="tehillim") h+=`<p class="hint">חלוקת תהילים לימי החודש העברי.</p>`;
   if(k==="kook") h+=G.map(g=>{ const a=g.units[0], L=klen(a.b,a.c);
@@ -1115,8 +1187,8 @@ function setupView(){
       return `<div class="sep"><div class="thead"><b class="tname" style="font-size:17px">${esc(c.name)}</b></div>
       <p class="note">${esc(c.unit)}: ${c.total} בסך הכול · ${c.wait?"מחכה לי":"רץ לפי התאריך"}${c.link||c.struct?" · קישור לספריא":c.links||c.tpl?" · קישור לאתר":""}${P.units.length?" · הבא: "+esc(groups("c:"+c.id,P.units)[0].label):""}</p>
       ${daysRow("c:"+c.id)}
-      <div class="grid2" style="grid-template-columns:1fr 1fr"><div class="field"><span>ביום</span><input type="number" min="1" max="50" data-cper="${c.id}" value="${c.per}"></div>
-        <div class="field"><span>${c.struct?"היחידה הבאה (מספר סידורי)":"היחידה הבאה"}</span><input type="number" min="1" max="${c.total}" data-cpos="${c.id}" value="${nx}"></div></div>
+      <div class="grid2" style="grid-template-columns:1fr 1fr"><div class="field"><span>${c.struct&&c.by==="seg"? esc(plural(c.su))+" ביום" : "ביום"}</span><input type="number" min="1" max="50" data-cper="${c.id}" value="${c.per}"></div>
+        ${c.struct? posPick(c,nx) : `<div class="field"><span>היחידה הבאה</span><input type="number" min="1" max="${c.total}" data-cpos="${c.id}" value="${nx}"></div>`}</div>
       <div class="row"><button class="btn small" data-cupd="${c.id}">עדכן</button><button class="btn small" data-rm="c:${c.id}">הסר לימוד</button></div></div>`; }).join("")}
     ${IS_APK?`<div class="sep"><p class="note" style="margin-top:0"><b>פניני הלכה</b></p>
       <div class="field"><select id="ph-book">${PH.map((x,i)=>`<option value="${i}">פניני הלכה – ${x[0]}</option>`).join("")}</select></div>
@@ -1125,12 +1197,12 @@ function setupView(){
     <div class="sep"><div class="field"><span>הוספה אוטומטית מספריא</span><input type="text" id="sf-q" placeholder="שם הספר, למשל: מסילת ישרים"></div>
       <button class="btn small" id="sf-go">חפש</button>
       <p class="note">האפליקציה מביאה מספריא את מספר הפרקים והפסקאות ובונה את המסלול לבד. דרוש חיבור לאינטרנט.</p><div id="sf-res"></div></div>`:""}
-    <div class="sep"><p class="note" style="margin-top:0"><b>טור ושולחן ערוך – באתר "על התורה"</b></p>
+    <div class="sep"><p class="note" style="margin-top:0"><b>שולחן ערוך</b></p>
       <div class="grid2" style="grid-template-columns:1fr 1fr"><div class="field"><span>חלק</span><select id="sa-part">${SA.map((x,i)=>`<option value="${i}">${x[0]} (${x[2]} סימנים)</option>`).join("")}</select></div>
-        <div class="field"><span>סימנים ביום</span><input type="number" min="1" id="sa-per" value="1"></div></div>
+        <div class="field"><span>סעיפים ביום</span><input type="number" min="1" id="sa-per" value="5"></div></div>
       <div class="grid2" style="grid-template-columns:1fr 1fr"><div class="field"><span>מתחילים מסימן</span><input type="number" min="1" id="sa-start" value="1"></div>
         <div class="field"><span>ביום שלא למדתי</span><select id="sa-mode"><option value="wait">מחכה לי</option><option value="run">רץ לפי התאריך</option></select></div></div>
-      <p class="note">לכל סימן יופיעו שני כפתורים: שולחן ערוך עם נושאי הכלים (שם בוחרים גם טור ובית יוסף), ואתר הטור.</p>
+      <p class="note">הלימוד נמדד בסעיפים, כי יש סימנים קצרים מאוד ויש ארוכים. הטקסט והפירושים (משנה ברורה, ט״ז, ש״ך ועוד) נפתחים בתוך האפליקציה, ולכל סעיף אפשר לפתוח את הפירושים עליו.</p>
       <button class="btn small primary" id="sa-add">הוסף</button></div>
     <div class="sep"><p class="note" style="margin-top:0"><b>הוספה ידנית</b></p><div class="field"><span>שם הספר</span><input type="text" id="nc-name" placeholder="למשל: מסילת ישרים"></div>
       <div class="grid2" style="grid-template-columns:1fr 1fr"><div class="field"><span>סוג היחידה</span><select id="nc-unit">${["פרק","דף","עמוד","סימן","סעיף","פסקה","הלכה","שיעור","מאמר"].map(u=>`<option>${u}</option>`).join("")}</select></div>
@@ -1186,16 +1258,14 @@ function bindSetup(){
   const nx0=toISO(nextStudy(todayUTC()));
   document.querySelectorAll("[data-con]").forEach(el=>el.onchange=()=>{ const c=cGet("c:"+el.dataset.con); if(c){ c.on=el.checked; save(); } });
   document.querySelectorAll("[data-cupd]").forEach(el=>el.onclick=()=>{ const id=el.dataset.cupd, c=cGet("c:"+id); if(!c) return;
-    const per=Math.max(1,Math.min(50,parseInt(document.querySelector(`[data-cper="${id}"]`).value)||1)), pos=Math.max(1,Math.min(c.total,parseInt(document.querySelector(`[data-cpos="${id}"]`).value)||1));
+    const per=Math.max(1,Math.min(50,parseInt(document.querySelector(`[data-cper="${id}"]`).value)||1)), pos=c.struct? posRead(c) : Math.max(1,Math.min(c.total,parseInt(document.querySelector(`[data-cpos="${id}"]`).value)||1));
     const f0=toISO(startDay("c:"+id)); c.per=per; c.start=pos; c.from=f0; delete S.extra["c:"+id]; logSet("c:"+id,f0,false); save(); toast("עודכן"); refresh(); });
   document.querySelectorAll("[data-cdel]").forEach(el=>el.onclick=()=>{ if(!el.dataset.sure){ el.dataset.sure="1"; el.textContent="לחץ שוב כדי להסיר"; return; }
     S.custom=S.custom.filter(c=>c.id!==el.dataset.cdel); save(); toast("הספר הוסר. ההערות שכתבת נשמרו."); refresh(); });
   if($("#ph-go")) $("#ph-go").onclick=()=>{ const x=PH[+$("#ph-book").value]; sfFind("Peninei Halakhah, "+x[1],true,"פניני הלכה – "+x[0]); const r=$("#sf-res"); if(r&&r.scrollIntoView) r.scrollIntoView({block:"center"}); };
   if($("#sf-go")) $("#sf-go").onclick=()=>{ const q=$("#sf-q").value.trim(); if(!q){ toast("כתוב שם של ספר"); return; } sfFind(q); };
-  $("#sa-add").onclick=()=>{ const p=SA[+$("#sa-part").value], b="alhatorah.org/Full/"+p[1]+"/{n}.1";
-    S.custom=S.custom||[]; S.custom.push({id:"u"+Date.now().toString(36), name:"שולחן ערוך "+p[0], unit:"סימן", total:p[2], per:Math.max(1,parseInt($("#sa-per").value)||1),
-      start:Math.max(1,Math.min(p[2],parseInt($("#sa-start").value)||1)), from:nx0, wait:$("#sa-mode").value==="wait", on:true, link:"",
-      links:[{t:"שולחן ערוך ונושאי כלים",u:"https://shulchanarukh."+b},{t:"טור",u:"https://tur."+b}]});
+  $("#sa-add").onclick=()=>{ const pi=+$("#sa-part").value, p=SA[pi];
+    S.custom=S.custom||[]; S.custom.push(saTrack(pi,Math.max(1,Math.min(p[2],parseInt($("#sa-start").value)||1)),parseInt($("#sa-per").value)||5,$("#sa-mode").value==="wait"));
     save(); toast("נוסף: שולחן ערוך "+p[0]); refresh(); };
   $("#nc-add").onclick=()=>{ const name=$("#nc-name").value.trim(), total=parseInt($("#nc-total").value)||0;
     if(!name){ toast("חסר שם לספר"); return; } if(total<1){ toast("חסר מספר היחידות בספר"); return; }
@@ -1223,6 +1293,12 @@ function bindSetup(){
 function view(){ const v=(location.hash||"#today").slice(1); if(/^day-\d{4}-\d{2}-\d{2}$/.test(v)) return v; return ["today","cal","plan","setup"].includes(v)?v:"today"; }
 function typing(){ const a=document.activeElement; return a && ["TEXTAREA","INPUT","SELECT"].includes(a.tagName); }
 function refresh(){ render(true); }
+function buildJump(v){ const cards=[...document.querySelectorAll("#view > .card")].filter(c=>!c.hidden && c.offsetParent!==null), chips=[];
+  cards.forEach((c,i)=>{ const t=c.querySelector(".tname,.label"); if(!t) return; let n=t.textContent.trim(); if(!n) return; if(v!=="setup") n=n.split(" · ")[0].replace(/ · .*/,"");
+    if(n.length>22) n=n.slice(0,20)+"…"; c.id=c.id||"jc-"+i; const cls=[...c.classList].find(x=>x.indexOf("t-")===0)||"";
+    chips.push(`<button class="jchip ${cls} ${c.querySelector(".pill.ok")&&v!=="setup"&&/הושלם/.test(c.querySelector(".pill.ok").textContent)?"ok":""}" data-jump="${c.id}">${esc(n)}</button>`); });
+  if(chips.length<3) return; const bar=document.createElement("div"); bar.className="jump"; bar.innerHTML=chips.join(""); const dn=$("#view .daynav"); if(dn) dn.after(bar); else $("#view").prepend(bar); }
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-jump]"); if(!b) return; const c=document.getElementById(b.dataset.jump); if(c) c.scrollIntoView({behavior:"smooth",block:"start"}); });
 function render(keep){ EFF={};
   const v=view(), y=window.scrollY;
   const open=[...document.querySelectorAll("details[data-id]")].filter(x=>x.open).map(x=>x.dataset.id);
@@ -1235,16 +1311,20 @@ function render(keep){ EFF={};
   if(v==="today"||v.startsWith("day-")) curDate=v==="today"?TODAY():v.slice(4);
   open.forEach(id=>{ const d=document.querySelector(`details[data-id="${id}"]`); if(d) d.open=true; });
   if(v==="setup") bindSetup();
+  if(v==="today"||v.startsWith("day-")||v==="setup") buildJump(v);
   window.scrollTo(0,keep?y:0);
   if(S.tracks.mishnah.on && MTEXT===null && (v==="today"||v.startsWith("day-"))) loadMishnah().then(()=>{ if(!typing()) refresh(); });
 }
 
 // =================== EVENTS ===================
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-rdsel],[data-rmode]"); if(!el) return;
+  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-rdsel],[data-rmode],[data-li]"); if(!el) return;
   const ds=el.dataset;
   if(ds.go){ location.hash = ds.go===TODAY()? "today" : "day-"+ds.go; return; }
-  if(ds.rdsel!==undefined){ const box=el.closest("[data-rd]"); if(box) loadReader(box,ds.rdsel); return; }
+  if(ds.rdsel){ const [k,c]=ds.rdsel.split("|"), cur=rdSel(k), nv=cur.includes(c)? cur.filter(x=>x!==c) : cur.concat(c); setRdSel(k,nv);
+    document.querySelectorAll(`[data-rdsel^="${k}|"]`).forEach(b=>b.classList.toggle("on",nv.includes(b.dataset.rdsel.split("|")[1])));
+    document.querySelectorAll(`details[data-pc^="${k}|"]`).forEach(b=>{ if(b.open) openPiece(b); }); return; }
+  if(ds.li!==undefined){ const box=el.closest("[data-pc]"), p=box&&pieceOf(box); if(!p||!p.cm.length) return; const st=PC[p.ref]; if(!st) return; st.open[ds.li]=!st.open[ds.li]; drawPiece(box,p,st); return; }
   if(ds.rmode){ S.tracks.rambam.mode=+ds.rmode; save(); toast(ds.rmode==="1"?"פרק אחד ליום":"שלושה פרקים ליום"); refresh(); return; }
   if(ds.reload){ try{ Android.reloadPage(); }catch(e){} return; }
   if(ds.chkupd){ try{ Android.checkUpdates(); toast("בודק…"); }catch(e){ toast("לא זמין"); } return; }
@@ -1257,10 +1337,10 @@ document.addEventListener("click",e=>{
     if(!m.some(x=>x)){ toast("צריך לפחות יום לימוד אחד בשבוע"); return; }
     setDays(k,m); save(); toast(nameOf(k)+": "+m.reduce((a,b)=>a+(b?1:0),0)+" ימים בשבוע"); refresh(); return; }
   if(ds.sfpick){ sfFind(ds.sfpick,true); return; }
-  if(ds.xask){ const [k,gi,d]=ds.xask.split("|"), g=groups(k,trackPortion(k,parseISO(d)).units)[+gi]; if(!g) return;
+  if(ds.xask){ const [k,gi,d]=ds.xask.split("|"), g=groups(k,trackPortion(k,parseISO(d)).units)[+gi]; if(!g) return; g._t=parseISO(d); g._gi=+gi;
     const qe=document.querySelector(`[data-q="${g.xkey}"]`), q=qe?qe.value.trim():""; if(!q){ toast("כתבו שאלה"); return; }
     el.disabled=true; runExp(k,+gi,parseISO(d),q); return; }
-  if(ds.xcopy){ const [k,gi,d]=ds.xcopy.split("|"), g=groups(k,trackPortion(k,parseISO(d)).units)[+gi]; if(!g) return;
+  if(ds.xcopy){ const [k,gi,d]=ds.xcopy.split("|"), g=groups(k,trackPortion(k,parseISO(d)).units)[+gi]; if(!g) return; g._t=parseISO(d); g._gi=+gi;
     const pe=document.querySelector(`[data-kpaste="${g.xkey}"]`), txt=sysText()+"\n\n"+expPrompt(k,g,pe?pe.value.trim():"");
     try{ if(window.Android&&Android.copy){ Android.copy(txt); toast("הועתק – הדביקו ב־Gemini או ב־Claude"); return; } }catch(e){}
     try{ navigator.clipboard.writeText(txt).then(()=>toast("הועתק"),()=>toast("ההעתקה נכשלה")); }catch(e){ toast("ההעתקה נכשלה"); } return; }

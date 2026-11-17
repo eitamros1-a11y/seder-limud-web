@@ -1,5 +1,5 @@
 // offline support: page from the network when possible, everything else from the cache first
-const V="seder-c9f0fe3725";
+const V="seder-437b1d75dc";
 const CORE=["./","index.html","mishnah.js","manifest.webmanifest","icon-180.png"];
 self.addEventListener("install",e=>{ e.waitUntil(caches.open(V).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())); });
 self.addEventListener("activate",e=>{ e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim())); });
