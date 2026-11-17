@@ -663,7 +663,7 @@ function notesHtml(q){ q=(q||"").trim(); const all=entries(), hit=q? all.filter(
 function exportText(){ return entries().map(e=>"== "+e.title+" ==\n"+e.text).join("\n\n"); }
 // =================== READER: texts and commentaries from Sefaria, inside the app ===================
 const COMM={gemara:[["Steinsaltz","שטיינזלץ"],["Rashi","רש״י"],["Tosafot","תוספות"]],tanakh:[["Steinsaltz","שטיינזלץ"],["Rashi","רש״י"],["Radak","רד״ק"]],
-  parasha:[["Rashi","רש״י"],["Ramban","רמב״ן"],["Onkelos","אונקלוס"]],mishnah:[["Bartenura","ברטנורא"]],tehillim:[["Rashi","רש״י"],["Radak","רד״ק"]]};
+  parasha:[["Rashi","רש״י"],["Ramban","רמב״ן"],["Onkelos","אונקלוס"]],mishnah:[["Bartenura","ברטנורא"],["Rambam","רמב״ם"]],tehillim:[["Rashi","רש״י"],["Radak","רד״ק"]]};
 const LOCAL_BASE=["tanakh","parasha","mishnah"]; // their text is already in the card
 function srefOf(k,g){ const u=g.units[0];
   if(k==="kook" && u.b===0) return null; // Sefaria has no Hebrew text for these chapters
@@ -685,7 +685,9 @@ async function sfText(ref){ const c=txGet(ref); if(c!==undefined) return c;
   if(!v) throw new Error(j&&j.error? j.error : "no text");
   const val={t:v.text, src:v.versionTitle||""}; txPut(ref,val); return val; }
 const ALLOW=["b","strong","i","em","br","big","small","sup","sub"];
-function clean(h){ return String(h).replace(/<span class="mam-kq-k">[\s\S]*?<\/span>/g,"").replace(/<(\/?)([a-zA-Z0-9]+)[^>]*>/g,(m,sl,t)=>ALLOW.includes(t.toLowerCase())? "<"+sl+t.toLowerCase()+">" : (t.toLowerCase()==="p"||t.toLowerCase()==="div"? " " : "")); }
+function clean(h){ const imgs=[]; h=String(h).replace(/<img[^>]*src="(data:image\/[a-z]+;base64,[A-Za-z0-9+\/=]+)"[^>]*>/g,(m,src)=>{ imgs.push(src); return "\u0001"+(imgs.length-1)+"\u0001"; });
+  return cleanTags(h).replace(/\u0001(\d+)\u0001/g,(m,i)=>`<img src="${imgs[+i]}" style="display:block;max-width:100%;margin:6px auto;background:#fff">`); }
+function cleanTags(h){ return String(h).replace(/<span class="mam-kq-k">[\s\S]*?<\/span>/g,"").replace(/<(\/?)([a-zA-Z0-9]+)[^>]*>/g,(m,sl,t)=>ALLOW.includes(t.toLowerCase())? "<"+sl+t.toLowerCase()+">" : (t.toLowerCase()==="p"||t.toLowerCase()==="div"? " " : "")); }
 function leaves(x,out,depth){ if(Array.isArray(x)){ x.forEach((y,i)=>{ if(depth>0 && i>0 && Array.isArray(y) && out.length) out.push(null); leaves(y,out,depth+1); }); } else if(x!=null && String(x).trim()) out.push(String(x)); return out; }
 function textHtml(t,cm){ const L=leaves(t,[],0); if(!L.length) return `<p class="note">אין טקסט לקטע הזה.</p>`;
   return L.map(x=>x===null? `<div class="rsep"></div>` : `<p class="rtext${cm?" cm":""}">${clean(x)}</p>`).join("").replace(/(<div class="rsep"><\/div>)+/g,'<div class="rsep"></div>'); }
