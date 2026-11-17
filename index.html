@@ -164,8 +164,27 @@ details.box>summary{cursor:pointer;padding:10px 0;font-weight:600;color:var(--tc
 </nav>
 <div class="toast" id="toast"></div>
 
-<script src="mishnah.js"></script>
+<script>document.write('<script src="'+((location.protocol==="file:"&&location.href.indexOf("/android_asset/")<0)?"file:///android_asset/":"")+'mishnah.js"><\/script>')</script>
 <script>
+(function(){ const A=window.Android; if(!A||!A.putStore||!A.getStoreAll) return;
+  let ls=null; try{ ls=window.localStorage; ls.getItem("x"); }catch(e){ ls=null; }
+  let nat={}; try{ nat=JSON.parse(A.getStoreAll()||"{}")||{}; }catch(e){}
+  const hasNat=Object.keys(nat).length>0;
+  if(ls){
+    const P=Storage.prototype, set=P.setItem, rem=P.removeItem;
+    if(hasNat){ for(const k in nat){ try{ set.call(ls,k,nat[k]); }catch(e){} } }
+    else { try{ for(let i=0;i<ls.length;i++){ const k=ls.key(i); A.putStore(k,ls.getItem(k)); } }catch(e){} }
+    P.setItem=function(k,v){ set.call(this,k,v); if(this===ls){ try{ A.putStore(String(k),String(v)); }catch(e){} } };
+    P.removeItem=function(k){ rem.call(this,k); if(this===ls){ try{ A.removeStore(String(k)); }catch(e){} } };
+  } else {
+    // storage unavailable: work straight from the app's store
+    const mem=nat; const fake={getItem:k=>(k in mem)?mem[k]:null,setItem:(k,v)=>{ mem[k]=String(v); try{ A.putStore(String(k),String(v)); }catch(e){} },
+      removeItem:k=>{ delete mem[k]; try{ A.removeStore(String(k)); }catch(e){} },key:i=>Object.keys(mem)[i]||null,get length(){ return Object.keys(mem).length; }};
+    try{ Object.defineProperty(window,"localStorage",{value:fake,configurable:true}); }catch(e){}
+  }
+})();
+// files shipped with the Android app, wherever this page was loaded from
+const AB=(location.protocol==="file:" && location.href.indexOf("/android_asset/")<0)? "file:///android_asset/" : "";
 // =================== DATA ===================
 const MAS = [
  ["Berakhot","ברכות",2,64],["Shabbat","שבת",2,157],["Eruvin","עירובין",2,105],["Pesachim","פסחים",2,121],
@@ -532,7 +551,7 @@ function md(s){ // tiny markdown → html (escaped)
 
 const tnkLoading={};
 function tnkBook(b){ const slug=TNK[b][0], T=window.TNK_TEXT&&window.TNK_TEXT[slug]; if(T) return T; if(!IS_APK) return null;
-  if(tnkLoading[slug]===undefined){ tnkLoading[slug]=1; const sc=document.createElement("script"); sc.src="tanakh/"+slug+".js"; sc.onload=()=>{ if(!typing()) refresh(); }; sc.onerror=()=>{ tnkLoading[slug]=0; }; document.head.appendChild(sc); }
+  if(tnkLoading[slug]===undefined){ tnkLoading[slug]=1; const sc=document.createElement("script"); sc.src=AB+"tanakh/"+slug+".js"; sc.onload=()=>{ if(!typing()) refresh(); }; sc.onerror=()=>{ tnkLoading[slug]=0; }; document.head.appendChild(sc); }
   return null; }
 function versesFor(k,us){ const out=[];
   if(k==="tanakh"){ for(const u of us){ const T=tnkBook(u.b); if(!T) return null; T[u.c].forEach((v,i)=>out.push([gem(u.c+1)+" "+gem(i+1),v])); } }
