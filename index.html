@@ -345,10 +345,10 @@ function daysRow(k){ const m=curMask(k), n=m.reduce((a,b)=>a+(b?1:0),0);
 // =================== STATE ===================
 function defaults(){ const d="2026-11-12"; return {
   v:3, since:d,
-  gemara:{on:true, type:"custom", mas:5, pace:"amud", startDaf:10, start:d}, migYoma:true, migPes:true, migKook12:true, migTnk:true, migDaily:true,
+  gemara:{on:true, type:"custom", mas:5, pace:"amud", startDaf:10, start:d}, migYoma:true, migPes:true, migKook12:true, migTnk:true, migDaily:true, migTnk2:true,
   tracks:{
     mishnah:{on:true, segs:[{from:d, pos:{t:13,p:4,m:0}, per:4}]},
-    tanakh:{on:true, segs:[{from:d, pos:{b:8,c:2}, per:2, daily:true}]},
+    tanakh:{on:true, segs:[{from:d, pos:{b:8,c:4}, per:2, daily:true}]},
     parasha:{on:true},
     kook:{on:true, segs:[{from:d, pos:{b:0,c:12,p:1}, per:3}], chLen:{}}
   },
@@ -382,6 +382,12 @@ function migrate(x){
 }
 function postMigrate(){ let ch=false;
   if(!S.migDaily){ const sg=S.tracks.tanakh.segs; if(sg&&sg.length) sg[sg.length-1].daily=true; S.migDaily=true; ch=true; }
+  // the daily Tanakh schedule is two chapters ahead of what was set: on 17 Nov it is II Samuel 15–16
+  if(!S.migTnk2){ const tr=S.tracks.tanakh, d="2026-11-17", t=parseISO(d), cur=segAt("tanakh",t)||tr.segs[tr.segs.length-1];
+    if(cur && cur.daily){ const P=portion("tanakh",t), u=P.units[0];
+      if(u && u.b===8 && u.c===12){ tr.segs=tr.segs.filter(x=>x.from<d); tr.segs.push(Object.assign({from:d,pos:{b:8,c:14},per:cur.per,daily:true},cur.days?{days:cur.days}:{}));
+        if(S.extra.tanakh) for(const x in S.extra.tanakh) if(x>=d) delete S.extra.tanakh[x]; } }
+    S.migTnk2=true; ch=true; }
   return ch; }
 function lsLoad(){ try{ const j=localStorage.getItem("seder-limud"); if(j) S=migrate(JSON.parse(j)); }catch(e){} }
 function lsSave(){ try{ localStorage.setItem("seder-limud", JSON.stringify(S)); }catch(e){} }
