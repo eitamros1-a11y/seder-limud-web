@@ -698,6 +698,20 @@ const COMM={gemara:[["Steinsaltz","שטיינזלץ"],["Rashi","רש״י"],["Tos
   mishnah:[["Bartenura","ברטנורא"],["Rambam","רמב״ם"]],
   rambam:[["Steinsaltz","שטיינזלץ"]],
   tehillim:[["Rashi","רש״י"],["Radak","רד״ק"],["Metzudat David","מצודת דוד"]]};
+const COMMX={gemara:[["Ritva","ריטב״א","L"],["Meiri","מאירי","L"],["Chidushei Halachot","מהרש״א","L"],["Rashba","רשב״א","L"],["Rabbeinu Chananel","רבנו חננאל","L"]],
+  tanakh:[["Metzudat Zion","מצודת ציון","L"],["Malbim","מלבי״ם","L"],["Ralbag","רלב״ג","L"],["Abarbanel","אברבנאל","L"]],
+  parasha:[["Steinsaltz","שטיינזלץ","L"],["Ibn Ezra","אבן עזרא","L"],["Sforno","ספורנו","L"],["Or HaChaim","אור החיים","L"],["Rashbam","רשב״ם","L"],["Kli Yakar","כלי יקר","L"],["Siftei Chakhamim","שפתי חכמים","L"],["Targum Jonathan","תרגום יונתן","L"]],
+  mishnah:[["Tosafot Yom Tov","תוספות יום טוב","L"],["Yachin","תפארת ישראל – יכין","L"],["Boaz","תפארת ישראל – בועז","L"],["Melekhet Shelomoh","מלאכת שלמה","L"]],
+  rambam:[["Kessef Mishneh","כסף משנה","L"],["Maggid Mishneh","מגיד משנה","L"],["Lechem Mishneh","לחם משנה","L"],["Hasagot HaRaavad","השגות הראב״ד","L"]],
+  tehillim:[["Metzudat Zion","מצודת ציון","L"],["Malbim","מלבי״ם","L"],["Ibn Ezra","אבן עזרא","L"],["Steinsaltz","שטיינזלץ","L"]]};
+const SAX={oc:[["Sha'arei Teshuvah","שערי תשובה"],["Beur HaGra","ביאור הגר״א"],["Kaf HaChayim","כף החיים"],["Eliyah Rabbah","אליה רבה"]],
+  yd:[["Beur HaGra","ביאור הגר״א"],["Nekudot HaKesef","נקודות הכסף"],["Rabbi Akiva Eiger","רבי עקיבא איגר"]],
+  eh:[["Beur HaGra","ביאור הגר״א"],["Turei Zahav","ט״ז"]],cm:[["Netivot HaMishpat","נתיבות המשפט"],["Pitchei Teshuva","פתחי תשובה"],["Beur HaGra","ביאור הגר״א"]]};
+function commAll(k){ const c=k[1]===":"&&cGet(k), sa=saOf(c); if(sa) return sa[5].concat(SAX[sa[3]]||[]); return (COMM[k]||[]).concat(COMMX[k]||[]); }
+function commDef(k){ const c=k[1]===":"&&cGet(k), sa=saOf(c); return (sa? sa[5] : (COMM[k]||[])).map(x=>x[0]); }
+function commPick(k){ let o={}; try{ o=JSON.parse(localStorage.getItem("rdpick")||"{}"); }catch(e){} const v=o[selKey(k)]; return Array.isArray(v)? v : commDef(k); }
+function setCommPick(k,v){ let o={}; try{ o=JSON.parse(localStorage.getItem("rdpick")||"{}"); }catch(e){} o[selKey(k)]=v; localStorage.setItem("rdpick",JSON.stringify(o)); }
+function commOn(k){ const pk=commPick(k); return commAll(k).filter(x=>pk.includes(x[0])); }
 function commRef(c,base){ return (c==="Steinsaltz" && /^Mishneh Torah/.test(base))? "Steinsaltz on "+base : c==="Onkelos"? "Onkelos "+base : c+" on "+base; }
 const TXC={};
 function txKey(ref){ return "tx:"+ref; }
@@ -720,24 +734,24 @@ function leaves(x,out,depth){ if(Array.isArray(x)){ x.forEach((y,i)=>{ if(depth>
 // the reading pieces of a day: one per chapter (or amud), each with its own commentators
 function pieces(k,t){ const P=trackPortion(k,t); if(!P.units||!P.units.length) return []; const G=groups(k,P.units), out=[];
   G.forEach((g,gi)=>{
-    if(k==="gemara") g.units.forEach(u=>{ const m=MAS[u.mi]; if(m[4]) return; (u.amud?[u.amud]:["a","b"]).forEach(am=>out.push({gi,ref:m[0]+" "+u.d+am,title:m[1]+" דף "+gem(u.d)+" "+(am==="a"?"ע״א":"ע״ב"),num:false})); });
-    else if(k==="tanakh") g.units.forEach(u=>out.push({gi,ref:TNK[u.b][0]+"."+(u.c+1),title:TNK[u.b][1]+" פרק "+gem(u.c+1),loc:()=>{ const T=tnkBook(u.b); return T&&T[u.c]? T[u.c].map((v,i)=>[gem(i+1),esc(v)]) : null; }}));
+    if(k==="gemara") g.units.forEach(u=>{ const m=MAS[u.mi]; if(m[4]) return; (u.amud?[u.amud]:["a","b"]).forEach(am=>out.push({gi,ref:m[0]+" "+u.d+am,lk:{a:1,tail:m[0],ch:u.d+am},title:m[1]+" דף "+gem(u.d)+" "+(am==="a"?"ע״א":"ע״ב"),num:false})); });
+    else if(k==="tanakh") g.units.forEach(u=>out.push({gi,ref:TNK[u.b][0]+"."+(u.c+1),lk:{a:1,tail:TNK[u.b][0],ch:String(u.c+1)},title:TNK[u.b][1]+" פרק "+gem(u.c+1),loc:()=>{ const T=tnkBook(u.b); return T&&T[u.c]? T[u.c].map((v,i)=>[gem(i+1),esc(v)]) : null; }}));
     else if(k==="parasha") g.units.forEach(u=>{ const A=PAR[u.pi][1][u.a]; for(let c=A[1]; c<=A[3]; c++){ const cc=c;
         out.push({gi,ref:TNK[A[0]][0]+"."+c+"."+(c===A[1]?A[2]:1)+"-"+(c===A[3]?A[4]:999),title:ALIYA[u.a]+" · "+TNK[A[0]][1]+" "+gem(c),
-          lo:c===A[1]?A[2]:1, hi:c===A[3]?A[4]:0, off:c===A[1]?A[2]:1, loc:function(){ const T=tnkBook(A[0]); if(!T||!T[cc-1]) return null; const hi=this.hi||T[cc-1].length; const o=[]; for(let v=this.lo; v<=hi; v++) o.push([gem(v),esc(T[cc-1][v-1])]); return o; }}); } });
+          lo:c===A[1]?A[2]:1, hi:c===A[3]?A[4]:0, off:c===A[1]?A[2]:1, lk:{a:c===A[1]?A[2]:1,tail:TNK[A[0]][0],ch:String(c)}, loc:function(){ const T=tnkBook(A[0]); if(!T||!T[cc-1]) return null; const hi=this.hi||T[cc-1].length; const o=[]; for(let v=this.lo; v<=hi; v++) o.push([gem(v),esc(T[cc-1][v-1])]); return o; }}); } });
     else if(k==="mishnah") groupBy(g.units,u=>u.t+"."+u.p).forEach(us=>{ const a=us[0], z=us[us.length-1];
-        out.push({gi,off:a.m+1,ref:"Mishnah "+MISH[a.t][0]+"."+(a.p+1)+"."+(a.m+1)+"-"+(z.m+1),title:"משנה "+MISH[a.t][1]+" פרק "+gem(a.p+1),loc:()=>MTEXT? us.map(u=>[gem(u.m+1),esc(MTEXT[u.t][2][u.p][u.m])]) : null}); });
-    else if(k==="rambam") g.units.forEach(u=>{ const nm=LEARN.names[u.n]; out.push({gi,ref:"Mishneh Torah, "+nm[0]+"."+u.p,title:nm[1]+" פרק "+gem(u.p)}); });
+        out.push({gi,off:a.m+1,lk:{a:a.m+1,tail:MISH[a.t][0],ch:String(a.p+1)},ref:"Mishnah "+MISH[a.t][0]+"."+(a.p+1)+"."+(a.m+1)+"-"+(z.m+1),title:"משנה "+MISH[a.t][1]+" פרק "+gem(a.p+1),loc:()=>MTEXT? us.map(u=>[gem(u.m+1),esc(MTEXT[u.t][2][u.p][u.m])]) : null}); });
+    else if(k==="rambam") g.units.forEach(u=>{ const nm=LEARN.names[u.n]; out.push({gi,ref:"Mishneh Torah, "+nm[0]+"."+u.p,lk:{a:1,tail:nm[0],ch:String(u.p)},title:nm[1]+" פרק "+gem(u.p)}); });
     else if(k==="tehillim") g.units.forEach(u=>{ for(let c=u.a[0]; c<=u.b[0]; c++){ const f=(c===u.a[0]&&u.a[1])?u.a[1]:0, to=(c===u.b[0]&&u.b[1])?u.b[1]:0, cc=c;
-        out.push({gi,off:f||1,ref:"Psalms."+c+(f||to?"."+(f||1)+"-"+(to||999):""),title:"תהילים "+gem(c)+(f||to?" ("+gem(f||1)+"–"+(to?gem(to):"סוף")+")":"")+(u.lab?" · "+u.lab:""),
+        out.push({gi,off:f||1,lk:{a:f||1,tail:"Psalms",ch:String(c)},ref:"Psalms."+c+(f||to?"."+(f||1)+"-"+(to||999):""),title:"תהילים "+gem(c)+(f||to?" ("+gem(f||1)+"–"+(to?gem(to):"סוף")+")":"")+(u.lab?" · "+u.lab:""),
           loc:()=>{ const T=IS_APK&&tnkBook(26); if(!T||!T[cc-1]) return null; const o=[]; for(let v=f||1; v<=(to||T[cc-1].length); v++) o.push([gem(v),esc(T[cc-1][v-1])]); return o; }}); } });
     else if(k==="tanya") out.push({gi,ref:g.tanya.ref,title:g.title+(g.units[0].lab?" · "+g.units[0].lab:""),from:g.tanya.from,to:g.tanya.to,num:false});
     else if(k[1]===":"){ const c=cGet(k); if(!c||!c.struct) return; const F=cUnits(c), l0=F[g.units[0].n-1], l1=F[g.units[g.units.length-1].n-1]; if(!l0) return; const nd=c.struct[l0.ni], sa=saOf(c);
-      if(c.by==="seg") out.push({gi,ref:nd.ref+" "+l0.ch+":"+l0.sg+(l1.sg>l0.sg?"-"+l1.sg:""),title:(sa?"סימן ":c.cu+" ")+num(l0.ch)+", "+(l1.sg>l0.sg? plural(c.su)+" "+num(l0.sg)+"–"+num(l1.sg) : c.su+" "+num(l0.sg)),off:l0.sg,sim:nd.ref+" "+l0.ch,a:l0.sg,b:l1.sg,sa});
+      if(c.by==="seg") out.push({gi,ref:nd.ref+" "+l0.ch+":"+l0.sg+(l1.sg>l0.sg?"-"+l1.sg:""),title:(sa?"סימן ":c.cu+" ")+num(l0.ch)+", "+(l1.sg>l0.sg? plural(c.su)+" "+num(l0.sg)+"–"+num(l1.sg) : c.su+" "+num(l0.sg)),off:l0.sg,sa,lk:{sim:nd.ref+" "+l0.ch,a:l0.sg,b:l1.sg,tail:sa?sa[4].replace("Shulchan Arukh, ",""):"",ch:String(l0.ch),num:true,sa:true}});
       else g.units.forEach(u=>{ const l=F[u.n-1]; out.push({gi,ref:c.struct[l.ni].ref+" "+l.ch,title:g.title}); }); }
     else if(k==="kook"){ const u=g.units[0]; if(u.b===1) out.push({gi,ref:decodeURIComponent(g.href.slice(SITE.length).split("?")[0]).replace(/_/g," "),title:g.title,num:false}); }
   });
-  out.forEach((p,i)=>{ p.k=k; p.i=i; p.d=toISO(t); p.cm=p.sa? p.sa[5] : (COMM[k]||[]); });
+  out.forEach((p,i)=>{ p.k=k; p.i=i; p.d=toISO(t); p.all=commAll(k); p.cm=commOn(k); });
   return out; }
 function pcHasReader(k){ return k!=="kook" || true; }
 const PC={}; // per piece: lines, commentary per line, open lines
@@ -746,8 +760,10 @@ function rdSel(k){ k=selKey(k); try{ return (JSON.parse(localStorage.getItem("rd
 function setRdSel(k,v){ k=selKey(k); let o={}; try{ o=JSON.parse(localStorage.getItem("rdsel")||"{}"); }catch(e){} o[k]=v; localStorage.setItem("rdsel",JSON.stringify(o)); }
 function pieceBox(p){ const sel=rdSel(p.k);
   return `<details class="box rdp" data-id="pc-${esc(p.ref)}" data-pc="${p.k}|${p.d}|${p.i}"><summary>${esc(p.title)}</summary>
-    ${p.cm.length?`<div class="rd-bar">${p.cm.map(c=>`<button class="btn small ${sel.includes(c[0])?"on":""}" data-rdsel="${p.k}|${c[0]}">${c[1]}</button>`).join("")}</div>
-    <p class="hint" style="margin:0 0 6px">לחיצה על ${p.k==="gemara"||p.k==="tanya"?"שורה":p.k==="mishnah"?"משנה":p.k==="rambam"?"הלכה":"פסוק"} מציגה את הפירושים עליה. פרשן מסומן מוצג לאורך כל הפרק.</p>`:""}
+    ${p.all.length?`<div class="rd-bar">${p.cm.map(c=>`<button class="btn small ${sel.includes(c[0])?"on":""}" data-rdsel="${p.k}|${c[0]}">${c[1]}</button>`).join("")}<button class="btn small" data-rdcfg="1" aria-label="בחירת פרשנים">⚙ פרשנים</button></div>
+    <div class="rd-cfg box" hidden><p class="note" style="margin-top:0">אילו פרשנים יופיעו ב${esc(p.k[1]===":"?(cGet(p.k)||{}).name||"":NAMES[p.k]||"")}:</p>
+      ${p.all.map(c=>`<label class="check" style="margin:4px 0"><input type="checkbox" data-rdpick="${p.k}|${c[0]}" ${p.cm.some(x=>x[0]===c[0])?"checked":""}> ${c[1]}</label>`).join("")}</div>
+    ${p.cm.length?"":`<p class="hint" style="margin:0 0 6px">לא נבחרו פרשנים. אפשר לבחור ב־⚙.</p>`}<p class="hint" style="margin:0 0 6px;${p.cm.length?"":"display:none"}">לחיצה על ${p.k==="gemara"||p.k==="tanya"?"שורה":p.k==="mishnah"?"משנה":p.k==="rambam"?"הלכה":"פסוק"} מציגה את הפירושים עליה. פרשן מסומן מוצג לאורך כל הפרק.</p>`:""}
     <div class="rd-out"><p class="note">טוען…</p></div>
     <p class="src"><a style="color:var(--tc)" href="${SITE+encodeURIComponent(p.ref.replace(/ /g,"_"))}?lang=he" target="_blank" rel="noopener">פתח בספריא ↗</a></p></details>`; }
 function pieceOf(box){ const [k,d,i]=box.dataset.pc.split("|"); return pieces(k,parseISO(d))[+i]; }
@@ -762,19 +778,21 @@ async function sfLinks(ref){ const key="L|"+ref, c=txGet(key); if(c!==undefined)
   let j=null; const path="links/"+encodeURIComponent(ref)+"?with_text=0";
   try{ const r=await fetch("https://www.sefaria.org/api/"+path); j=await r.json(); }catch(e){ j=await sfGet(path); }
   if(!Array.isArray(j)) throw new Error("links"); const v=j.map(x=>[x.anchorRef,x.ref,x.index_title]); txPut(key,{t:v}); return v; }
-async function linkComm(p,name,n){ const tail=p.sa[4].replace("Shulchan Arukh, ",""), L=await sfLinks(p.sim), per=[]; for(let i=0;i<n;i++) per.push([]);
-  const ok=t=> t===name || (t.indexOf(name+" on ")===0 && t.indexOf(tail)>=0) || (t.indexOf(name)===0 && t.indexOf(" on ")<0);
-  const items=[]; L.forEach(([an,rf,it])=>{ if(!ok(it||"")) return; const sf=parseInt(String(an).split(":").pop()); if(!(sf>=p.a&&sf<=p.b)) return;
-    const sp=rf.lastIndexOf(" "), book=rf.slice(0,sp), addr=rf.slice(sp+1), [st,en]=addr.split("-"), ns=st.split(":").map(Number); items.push({line:sf-p.a,book,ns,en:en? +en.split(":").pop() : 0}); });
-  const books={}; items.forEach(x=>{ const r=x.book+" "+x.ns[0]; books[r]=1; });
-  const texts={}; for(const r of Object.keys(books)){ try{ texts[r]=(await sfText(r)).t; }catch(e){} }
-  const seen={}; items.sort((a,b)=>a.line-b.line||a.ns[a.ns.length-1]-b.ns[b.ns.length-1]).forEach(x=>{ let T=texts[x.book+" "+x.ns[0]]; if(T===undefined) return;
-    for(let d=1; d<x.ns.length-1; d++) T=(T||[])[x.ns[d]-1]; const last=x.ns[x.ns.length-1], to=x.en||last;
-    for(let q=last;q<=to;q++){ const id=x.line+"|"+x.book+"|"+x.ns.slice(0,-1).join(":")+"|"+q; if(seen[id]) continue; seen[id]=1; const v=Array.isArray(T)? T[q-1] : (q===last? T : null); if(v==null) continue;
-      const tx=leaves(v,[],0).filter(Boolean).join(" "); if(tx.trim()) per[x.line].push(`<span class="rn">(${gem(q)})</span>`+tx); } });
+async function linkComm(p,name,n){ const lk=p.lk, L=await sfLinks(lk.sim||p.ref), per=[]; for(let i=0;i<n;i++) per.push([]);
+  const ok=t=> t===name || (t.indexOf(name+" on ")===0 && t.indexOf(lk.tail)>=0) || (t.indexOf(name+", ")===0 && t.indexOf(lk.tail)>=0) || (lk.sa && t.indexOf(name)===0 && t.indexOf(" on ")<0);
+  const items=[]; L.forEach(([an,rf,it])=>{ if(!ok(it||"")) return; an=String(an); const ad=an.slice(an.lastIndexOf(" ")+1).split("-")[0].split(":"); if(ad.length<2) return;
+    if(lk.ch && ad[0]!==lk.ch) return; const line=+ad[ad.length-1]-lk.a; if(!(line>=0&&line<n)) return;
+    const sp=rf.lastIndexOf(" "), book=rf.slice(0,sp), [st,en]=rf.slice(sp+1).split("-"), parts=st.split(":"); if(parts.length<2) return;
+    items.push({line,key:book+" "+parts[0],idx:parts.slice(1).map(Number),en:en? +en.split(":").pop() : 0}); });
+  const texts={}; for(const r of [...new Set(items.map(x=>x.key))]){ try{ texts[r]=(await sfText(r)).t; }catch(e){} }
+  const seen={}; items.sort((a,b)=>a.line-b.line||a.idx.join(".").localeCompare(b.idx.join("."),undefined,{numeric:true})).forEach(x=>{ let T=texts[x.key]; if(T===undefined) return;
+    for(let d=0; d<x.idx.length-1; d++) T=(T||[])[x.idx[d]-1]; const last=x.idx[x.idx.length-1], to=x.en&&x.en>=last? x.en : last;
+    for(let q=last;q<=to;q++){ const id=x.line+"|"+x.key+"|"+x.idx.slice(0,-1).join(":")+"|"+q; if(seen[id]) continue; seen[id]=1; const v=Array.isArray(T)? T[q-1] : (q===last? T : null); if(v==null) continue;
+      const tx=leaves(v,[],0).filter(Boolean).join(" "); if(tx.trim()) per[x.line].push((lk.num?`<span class="rn">(${gem(q)})</span>`:"")+tx); } });
   return per; }
 function needComm(p,st,names){ names.forEach(c=>{ if(st.comm[c]!==undefined) return; st.comm[c]="…";
-  (p.sa? linkComm(p,c,st.lines.length) : sfText(commRef(c,p.ref)).then(r=>perLine(r.t,st.lines.length))).then(v=>{ st.comm[c]=v; }).catch(()=>{ st.comm[c]="!"; }).then(()=>{ document.querySelectorAll(`details[data-pc]`).forEach(b=>{ if(b.open){ const q=pieceOf(b); if(q&&q.ref===p.ref) drawPiece(b,q,st); } }); }); }); }
+  const e=p.all.find(x=>x[0]===c)||[];
+  ((p.sa||e[2]==="L")&&p.lk? linkComm(p,c,st.lines.length) : sfText(commRef(c,p.ref)).then(r=>perLine(r.t,st.lines.length))).then(v=>{ st.comm[c]=v; }).catch(()=>{ st.comm[c]="!"; }).then(()=>{ document.querySelectorAll(`details[data-pc]`).forEach(b=>{ if(b.open){ const q=pieceOf(b); if(q&&q.ref===p.ref) drawPiece(b,q,st); } }); }); }); }
 function drawPiece(box,p,st){ const sel=rdSel(p.k).filter(c=>p.cm.some(x=>x[0]===c)), want=new Set(sel); Object.keys(st.open).forEach(i=>{ if(st.open[i]) p.cm.forEach(c=>want.add(c[0])); });
   needComm(p,st,[...want]);
   const nm=c=>(p.cm.find(x=>x[0]===c)||[c,c])[1];
@@ -787,10 +805,13 @@ function drawPiece(box,p,st){ const sel=rdSel(p.k).filter(c=>p.cm.some(x=>x[0]==
     if(op && !cb) cb=`<div class="cmb"><span class="note">${p.cm.some(c=>st.comm[c[0]]==="!")?"לא הצלחתי לטעון חלק מהפירושים.":"אין פירושים על המקום הזה."}</span></div>`;
     return `<div class="rl${op?" op":""}${p.cm.length?" tap":""}" data-li="${i}">${l[0]?`<span class="rn">${l[0]}</span>`:""}${l[1]}</div>${cb}`; }).join(""); }
 document.addEventListener("toggle",e=>{ const b=e.target; if(b && b.dataset && b.dataset.pc && b.open) openPiece(b); },true);
+document.addEventListener("change",e=>{ const x=e.target; if(!x||!x.dataset||!x.dataset.rdpick) return; const [k,c]=x.dataset.rdpick.split("|"), all=commAll(k).map(y=>y[0]);
+  let v=commPick(k).filter(y=>y!==c); if(x.checked) v.push(c); v=all.filter(y=>v.includes(y)); setCommPick(k,v); setRdSel(k,rdSel(k).filter(y=>v.includes(y)));
+  const box=x.closest("[data-pc]"), id=box&&box.dataset.id; refresh(); if(id){ const nb=document.querySelector(`details[data-id="${CSS.escape(id)}"]`); const cf=nb&&nb.querySelector(".rd-cfg"); if(cf) cf.hidden=false; } });
 function piecesHtml(k,t,gi){ return pieces(k,t).filter(p=>gi===undefined||p.gi===gi).map(pieceBox).join(""); }
 // fetch today's texts ahead, so they open without internet later
 function prefetch(){ if(navigator.onLine===false) return; const t=todayUTC(), jobs=[];
-  enabled().forEach(k=>{ const sel=rdSel(k); pieces(k,nextOn(k,t)).forEach(p=>{ if(!(p.loc&&p.loc()) && txGet(p.ref)===undefined) jobs.push(p.ref); if(!p.sa) sel.forEach(c=>{ const r=commRef(c,p.ref); if(txGet(r)===undefined) jobs.push(r); }); }); });
+  enabled().forEach(k=>{ const sel=rdSel(k); pieces(k,nextOn(k,t)).forEach(p=>{ if(!(p.loc&&p.loc()) && txGet(p.ref)===undefined) jobs.push(p.ref); if(!p.sa) sel.forEach(c=>{ const e=p.all.find(x=>x[0]===c); if(!e||e[2]==="L") return; const r=commRef(c,p.ref); if(txGet(r)===undefined) jobs.push(r); }); }); });
   let i=0; const next=()=>{ if(i>=jobs.length) return; sfText(jobs[i++]).catch(()=>{}).then(()=>setTimeout(next,700)); }; next(); }
 let MTEXT=window.MISHNAH_TEXT||false, mLoading=null;
 function loadMishnah(){ if(MTEXT||mLoading) return mLoading; mLoading=fetch("mishnah.json").then(r=>r.json()).then(j=>{ MTEXT=j; }).catch(()=>{ MTEXT=false; }); return mLoading; }
@@ -1318,12 +1339,13 @@ function render(keep){ EFF={};
 
 // =================== EVENTS ===================
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-rdsel],[data-rmode],[data-li]"); if(!el) return;
+  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-rdsel],[data-rmode],[data-li],[data-rdcfg]"); if(!el) return;
   const ds=el.dataset;
   if(ds.go){ location.hash = ds.go===TODAY()? "today" : "day-"+ds.go; return; }
   if(ds.rdsel){ const [k,c]=ds.rdsel.split("|"), cur=rdSel(k), nv=cur.includes(c)? cur.filter(x=>x!==c) : cur.concat(c); setRdSel(k,nv);
     document.querySelectorAll(`[data-rdsel^="${k}|"]`).forEach(b=>b.classList.toggle("on",nv.includes(b.dataset.rdsel.split("|")[1])));
     document.querySelectorAll(`details[data-pc^="${k}|"]`).forEach(b=>{ if(b.open) openPiece(b); }); return; }
+  if(ds.rdcfg){ const box=el.closest("[data-pc]"), cf=box&&box.querySelector(".rd-cfg"); if(cf) cf.hidden=!cf.hidden; return; }
   if(ds.li!==undefined){ const box=el.closest("[data-pc]"), p=box&&pieceOf(box); if(!p||!p.cm.length) return; const st=PC[p.ref]; if(!st) return; st.open[ds.li]=!st.open[ds.li]; drawPiece(box,p,st); return; }
   if(ds.rmode){ S.tracks.rambam.mode=+ds.rmode; save(); toast(ds.rmode==="1"?"פרק אחד ליום":"שלושה פרקים ליום"); refresh(); return; }
   if(ds.reload){ try{ Android.reloadPage(); }catch(e){} return; }
