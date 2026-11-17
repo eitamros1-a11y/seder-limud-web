@@ -365,7 +365,7 @@ function daysRow(k){ const m=curMask(k), n=m.reduce((a,b)=>a+(b?1:0),0);
 // =================== STATE ===================
 function defaults(){ const d="2026-11-12"; return {
   v:3, since:d,
-  gemara:{on:true, type:"custom", mas:5, pace:"amud", startDaf:10, start:d}, migYoma:true, migPes:true, migKook12:true, migTnk:true, migDaily:true, migTnk2:true,
+  gemara:{on:true, type:"custom", mas:5, pace:"amud", startDaf:10, start:d}, migYoma:true, migPes:true, migKook12:true, migTnk:true, migDaily:true, migTnk2:true, migFix17:true,
   tracks:{
     mishnah:{on:true, segs:[{from:d, pos:{t:13,p:4,m:0}, per:4}]},
     tanakh:{on:true, segs:[{from:d, pos:{b:8,c:4}, per:2, daily:true}]},
@@ -402,6 +402,15 @@ function migrate(x){
 }
 function postMigrate(){ let ch=false;
   if(!S.migDaily){ const sg=S.tracks.tanakh.segs; if(sg&&sg.length) sg[sg.length-1].daily=true; S.migDaily=true; ch=true; }
+  // 17 Nov: positions the learner reported after progress was lost — Yoma 11a, Orot HaTeshuvah 13:10
+  if(!S.migFix17){ const d="2026-11-17";
+    if(S.gemara.type==="custom" && S.gemara.mas===5 && S.gemara.pace==="amud"){
+      const all=gUnitsAll(), i=all.findIndex(u=>u.d===11&&u.amud==="a");
+      if(i>=0){ S.gemara.start=d; S.gemara.startUnit=i; delete S.gemara.boost; if(S.extra) S.extra.gemara={}; } }
+    const kt=S.tracks.kook, kc=segAt("kook",parseISO(d))||kt.segs[kt.segs.length-1];
+    kt.segs=kt.segs.filter(x=>x.from<d); kt.segs.push(Object.assign({from:d,pos:{b:0,c:13,p:10},per:kc.per},kc.days?{days:kc.days}:{}));
+    if(S.extra&&S.extra.kook) for(const x in S.extra.kook) if(x>=d) delete S.extra.kook[x];
+    S.migFix17=true; ch=true; }
   // the daily Tanakh schedule is two chapters ahead of what was set: on 17 Nov it is II Samuel 15–16
   if(!S.migTnk2){ const tr=S.tracks.tanakh, d="2026-11-17", t=parseISO(d), cur=segAt("tanakh",t)||tr.segs[tr.segs.length-1];
     if(cur && cur.daily){ const P=portion("tanakh",t), u=P.units[0];
