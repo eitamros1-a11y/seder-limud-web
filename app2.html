@@ -76,6 +76,13 @@ textarea{min-height:70px;resize:vertical}
 .bar{height:9px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0 4px}
 .bar>i{display:block;height:100%;background:var(--tc,var(--ok));border-radius:99px}
 body{overflow-x:clip}
+.card.cc > .thead{cursor:pointer;position:relative;padding-left:22px}
+.card.cc > .thead::after{content:"‹";position:absolute;left:2px;top:50%;transform:translateY(-50%) rotate(90deg);font-size:22px;color:var(--tc,var(--muted));transition:transform .2s}
+.card.cc.open > .thead::after{transform:translateY(-50%) rotate(-90deg)}
+.card.cc:not(.open){padding-bottom:12px}
+.ccs{font-family:"Frank Ruhl Libre",serif;font-size:18px;margin-top:4px;cursor:pointer;color:var(--ink)}
+.card.cc.open > .ccs{display:none}
+.card.cc:not(.open) > .ccb{display:none}
 .jump{position:sticky;top:0;z-index:4;display:flex;gap:6px;overflow-x:auto;padding:8px 2px;margin:0 -2px 6px;background:var(--bg);scrollbar-width:none}
 .jump::-webkit-scrollbar{display:none}
 .jchip{flex:0 0 auto;border:1px solid var(--tc,var(--line));color:var(--tc,var(--ink));background:var(--card);border-radius:999px;padding:5px 12px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
@@ -1243,7 +1250,8 @@ function setupView(){
     <div class="row" style="margin-top:8px"><button class="btn small" data-chkupd="1">בדוק עכשיו</button></div></div>`:""}
   <div class="card"><div class="label">תצוגה</div>
     <div class="field" style="margin-top:8px"><span>מצב תצוגה</span><div class="seg" id="seg-theme">${(IS_APK?[["light","בהיר"],["dark","כהה"]]:[["auto","אוטומטי"],["light","בהיר"],["dark","כהה"]]).map(o=>`<button data-th="${o[0]}" class="${(uiCfg().theme||(IS_APK?"light":"auto"))===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>
-    <div class="field"><span>גודל הטקסט</span><div class="seg" id="seg-zoom">${[[90,"קטן"],[100,"רגיל"],[115,"גדול"],[130,"גדול מאוד"]].map(o=>`<button data-z="${o[0]}" class="${(uiCfg().zoom||100)===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div></div>
+    <div class="field"><span>גודל הטקסט</span><div class="seg" id="seg-zoom">${[[90,"קטן"],[100,"רגיל"],[115,"גדול"],[130,"גדול מאוד"]].map(o=>`<button data-z="${o[0]}" class="${(uiCfg().zoom||100)===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>
+    <div class="field"><span>הלימודים במסך היומי</span><div class="seg" id="seg-fold">${[["1","מקופלים – פותחים אחד"],["0","פתוחים"]].map(o=>`<button data-fold="${o[0]}" class="${(uiCfg().fold===false?"0":"1")===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div></div>
   <div class="card"><div class="label">שמירה</div><p class="note">ההתקדמות, ההערות וההרחבות נשמרות בטלפון הזה. פעם בשבוע נשמר גיבוי אוטומטי בתיקייה Download/SederLimud בטלפון.</p>
     <div class="row"><button class="btn small" id="bkf">שמור גיבוי לקובץ</button><button class="btn small" id="bk">שתף גיבוי</button></div>
     <div class="row" style="margin-top:8px"><button class="btn small" id="rsf">שחזר מקובץ</button><button class="btn small" id="rs">שחזר מטקסט</button></div>
@@ -1252,6 +1260,7 @@ function setupView(){
   return h;
 }
 function bindSetup(){
+  document.querySelectorAll("[data-fold]").forEach(b=>b.onclick=()=>{ const u=uiCfg(); u.fold=b.dataset.fold==="1"; localStorage.setItem("ui",JSON.stringify(u)); refresh(); });
   const today=todayUTC(), fromFor=k=>toISO(startDay(k));
   const range=(a,b,sel,off=0)=>{ let s=""; for(let i=a;i<=b;i++) s+=`<option value="${i-off}" ${i-off==sel?"selected":""}>${gem(i)}</option>`; return s; };
   document.querySelectorAll("[data-on]").forEach(el=>el.onchange=()=>{ const k=el.dataset.on; if(k==="gemara") S.gemara.on=el.checked; else S.tracks[k].on=el.checked; save(); });
@@ -1314,12 +1323,25 @@ function bindSetup(){
 function view(){ const v=(location.hash||"#today").slice(1); if(/^day-\d{4}-\d{2}-\d{2}$/.test(v)) return v; return ["today","cal","plan","setup"].includes(v)?v:"today"; }
 function typing(){ const a=document.activeElement; return a && ["TEXTAREA","INPUT","SELECT"].includes(a.tagName); }
 function refresh(){ render(true); }
+// the day's studies are folded; one opens at a time
+let OPENC=null;
+function foldCards(){ if(uiCfg().fold===false) return;
+  [...document.querySelectorAll("#view > .card")].forEach(c=>{ const th=c.querySelector(":scope > .thead"); if(!th||![...c.classList].some(x=>x.indexOf("t-")===0)) return;
+    const key=([...c.classList].find(x=>x.indexOf("t-")===0))+"|"+(th.querySelector(".tname")||th).textContent;
+    const big=c.querySelector(".big"), sum=document.createElement("div"); sum.className="ccs"; sum.textContent=big? big.textContent.trim() : "";
+    const body=document.createElement("div"); body.className="ccb"; while(th.nextSibling) body.appendChild(th.nextSibling);
+    c.appendChild(sum); c.appendChild(body); c.classList.add("cc"); c.dataset.ck=key; if(OPENC===key) c.classList.add("open");
+    const tg=e=>{ if(e.target.closest("button,a,input,select,label")) return; const op=!c.classList.contains("open");
+      document.querySelectorAll("#view > .card.cc.open").forEach(o=>o.classList.remove("open")); if(op){ c.classList.add("open"); OPENC=key; c.scrollIntoView({block:"start",behavior:"smooth"}); } else OPENC=null; };
+    th.addEventListener("click",tg); sum.addEventListener("click",tg); }); }
 function buildJump(v){ const cards=[...document.querySelectorAll("#view > .card")].filter(c=>!c.hidden && c.offsetParent!==null), chips=[];
   cards.forEach((c,i)=>{ const t=c.querySelector(".tname,.label"); if(!t) return; let n=t.textContent.trim(); if(!n) return; if(v!=="setup") n=n.split(" · ")[0].replace(/ · .*/,"");
     if(n.length>22) n=n.slice(0,20)+"…"; c.id=c.id||"jc-"+i; const cls=[...c.classList].find(x=>x.indexOf("t-")===0)||"";
     chips.push(`<button class="jchip ${cls} ${c.querySelector(".pill.ok")&&v!=="setup"&&/הושלם/.test(c.querySelector(".pill.ok").textContent)?"ok":""}" data-jump="${c.id}">${esc(n)}</button>`); });
   if(chips.length<3) return; const bar=document.createElement("div"); bar.className="jump"; bar.innerHTML=chips.join(""); const dn=$("#view .daynav"); if(dn) dn.after(bar); else $("#view").prepend(bar); }
-document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-jump]"); if(!b) return; const c=document.getElementById(b.dataset.jump); if(c) c.scrollIntoView({behavior:"smooth",block:"start"}); });
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-jump]"); if(!b) return; const c=document.getElementById(b.dataset.jump); if(!c) return;
+  if(c.classList.contains("cc") && !c.classList.contains("open")){ document.querySelectorAll("#view > .card.cc.open").forEach(o=>o.classList.remove("open")); c.classList.add("open"); OPENC=c.dataset.ck; }
+  c.scrollIntoView({behavior:"smooth",block:"start"}); });
 function render(keep){ EFF={};
   const v=view(), y=window.scrollY;
   const open=[...document.querySelectorAll("details[data-id]")].filter(x=>x.open).map(x=>x.dataset.id);
@@ -1332,6 +1354,7 @@ function render(keep){ EFF={};
   if(v==="today"||v.startsWith("day-")) curDate=v==="today"?TODAY():v.slice(4);
   open.forEach(id=>{ const d=document.querySelector(`details[data-id="${id}"]`); if(d) d.open=true; });
   if(v==="setup") bindSetup();
+  if(v==="today"||v.startsWith("day-")) foldCards();
   if(v==="today"||v.startsWith("day-")||v==="setup") buildJump(v);
   window.scrollTo(0,keep?y:0);
   if(S.tracks.mishnah.on && MTEXT===null && (v==="today"||v.startsWith("day-"))) loadMishnah().then(()=>{ if(!typing()) refresh(); });
