@@ -1285,7 +1285,8 @@ function setupView(){
     <div class="field"><span>הלימודים במסך היומי</span><div class="seg" id="seg-fold">${[["1","מקופלים – פותחים אחד"],["0","פתוחים"]].map(o=>`<button data-fold="${o[0]}" class="${(uiCfg().fold===false?"0":"1")===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div></div>
   <div class="card"><div class="label">שיתוף עם חברים</div><p class="note" style="margin-top:4px">חברים יכולים לפתוח את הקישור, לכתוב את השם שלהם ולבחור לעצמם את הלימודים. ההתקדמות של כל אחד נשמרת רק אצלו.</p>
     ${FRIEND?`<div class="field"><span>השם שלי</span><div class="row" style="gap:6px"><input id="my-name" value="${esc(S.name||"")}" style="flex:1"><button class="btn small" id="my-name-save">שמור</button></div></div>`:""}
-    <button class="btn small" id="share-friends">שלח קישור לחבר</button></div>
+    <button class="btn small" id="share-friends">שלח קישור לחבר</button>
+    ${FRIEND&&!IS_APK&&/Android/i.test(navigator.userAgent)?`<p class="note" style="margin-top:10px">יש גם אפליקציה לאנדרואיד, עם תזכורות ווידג׳ט: ${linkBtn(FRIEND_URL+"seder-limud-friends.apk","הורד את האפליקציה")} ההתקדמות כאן לא עוברת אליה אוטומטית – אפשר להעביר בגיבוי לקובץ.</p>`:""}</div>
   <div class="card"><div class="label">שמירה</div><p class="note">ההתקדמות, ההערות וההרחבות נשמרות בדפדפן של המכשיר הזה בלבד. כדאי לשמור גיבוי לקובץ מדי פעם, ובמיוחד לפני מחיקת נתוני גלישה.</p><p class="note">באייפון: פתחו את האתר ב־Safari, לחצו על כפתור השיתוף ובחרו "הוסף למסך הבית". כך האתר נפתח כמו אפליקציה ושומר את הנתונים לאורך זמן.</p>
     <div class="row"><button class="btn small" id="bkf">שמור גיבוי לקובץ</button><button class="btn small" id="bk">שתף גיבוי</button></div>
     <div class="row" style="margin-top:8px"><button class="btn small" id="rsf">שחזר מקובץ</button><button class="btn small" id="rs">שחזר מטקסט</button></div>
@@ -1425,7 +1426,7 @@ function bindWelcome(){ const segv=id=>{ const b=document.querySelector("#"+id+"
     const kb=+segv("w-kook"); x.tracks.kook={on:kb>=0,segs:[{from:d,pos:{b:Math.max(0,kb),c:KOOK[Math.max(0,kb)][2],p:1},per:+$("#w-kper").value}],chLen:{}};
     S=migrate(x); save(); applyUI(); location.hash="#today"; render(false); toast("בהצלחה, "+name+"!"); };
   sync(); }
-function shareFriends(){ const t="סדר לימוד – לוח לימוד יומי אישי: גמרא, משנה, תנ״ך, רמב״ם, תהילים ועוד, עם הטקסט והפרשנים בתוך האפליקציה.\n"+FRIEND_URL;
+function shareFriends(){ const t="סדר לימוד – לוח לימוד יומי אישי: גמרא, משנה, תנ״ך, רמב״ם, תהילים ועוד, עם הטקסט והפרשנים בתוך האפליקציה.\nאנדרואיד (אפליקציה להתקנה): "+FRIEND_URL+"seder-limud-friends.apk\nאייפון או דפדפן: "+FRIEND_URL;
   try{ if(navigator.share){ navigator.share({title:"סדר לימוד",text:t}).catch(()=>{}); return; } }catch(e){}
   try{ if(window.Android&&Android.share){ Android.share(t); return; } }catch(e){}
   try{ navigator.clipboard.writeText(t); toast("הקישור הועתק"); }catch(e){ prompt("העתק את הקישור:",FRIEND_URL); } }
