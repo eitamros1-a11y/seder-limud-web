@@ -730,6 +730,13 @@ function appVer(){ try{ return window.Android&&Android.appVersion? +Android.appV
 function apkNewer(){ return APPINFO && appVer() && +APPINFO.apk > appVer(); }
 window.onAppInfo=function(j){ try{ APPINFO=JSON.parse(j); localStorage.setItem("appinfo",j); }catch(e){} if(!typing()) refresh(); };
 window.onWebUpdate=function(){ WEBREADY=true; if(!typing()) refresh(); };
+// tell learners who set up before about studies added since
+const NEWS=[["mb","משנה ברורה יומי (דף היומי בהלכה)"],["shl","שמירת הלשון (חפץ חיים)"]];
+function newsCard(){ if(!FRIEND||!S.name) return ""; const seen=S.newsSeen||[], items=NEWS.filter(x=>!seen.includes(x[0]) && !S.tracks[x[0]].on); if(!items.length) return "";
+  return `<div class="card" style="border-top-color:var(--accent)"><b>חדש באפליקציה</b><p class="note">נוספו לימודים יומיים. אפשר להוסיף אותם ללוח שלך:</p>
+    ${items.map(x=>`<div class="row" style="justify-content:space-between;align-items:center;margin:6px 0"><span>${x[1]}</span><button class="btn small primary" data-newadd="${x[0]}">הוסף</button></div>`).join("")}
+    <p class="hint">יש גם חיפוש (🔍 למעלה), מצב לילה בהגדרות, ושולחן ערוך בכל ארבעת הטורים תחת "הוסף לימוד חדש".</p>
+    <button class="btn small" data-newx="1">לא עכשיו</button></div>`; }
 function updBanner(){ if(!IS_APK) return "";
   if(WEBREADY) return `<div class="card" style="border-top-color:var(--ok)"><b>עדכון לאפליקציה מוכן</b><p class="note">הוא ייטען לבד בפתיחה הבאה, או עכשיו.</p><button class="btn small" data-reload="1">טען עכשיו</button></div>`;
   if(apkNewer()) return `<div class="card" style="border-top-color:var(--accent)"><b>יש גרסה חדשה של האפליקציה (${esc(APPINFO.apk)})</b><p class="note">מורידים ומתקינים מעל הקיימת. ההתקדמות וההערות נשמרות.</p>${linkBtn(APPINFO.apkUrl,"הורד והתקן")}</div>`;
@@ -1017,7 +1024,7 @@ function dayView(d){
     <div class="mid"><div class="d1">${esc(fmtDate(t))}${t===today?" · היום":""}</div><div class="d2">${esc(hebDate(t))}</div></div>
     <button class="navbtn" data-go="${toISO(t+DAY)}" aria-label="יום הבא">‹</button></div>`;
   if(t!==today) h+=`<div class="row" style="justify-content:center;margin:-4px 0 12px"><a class="btn small" href="#today">חזרה להיום</a></div>`;
-  else h+=updBanner();
+  else h+=updBanner()+newsCard();
   if(isOff(t)){
     const man=!isShabbat(t)&&!holName(t);
     h+=`<div class="card" style="text-align:center"><div class="big">${isShabbat(t)?"שבת שלום":esc(offLabel(t))}</div><p class="note">${enabled().some(k=>!trackOff(k,t)&&trackPortion(k,t).units.length)?"ביום זה מתוכננים רק: "+esc(enabled().filter(k=>!trackOff(k,t)&&trackPortion(k,t).units.length).map(nameOf).join(", "))+".":"אין לימוד מתוכנן ביום זה. הלוח ממשיך ביום הלימוד הבא מהמקום שבו עצרת."}</p>
@@ -1528,12 +1535,14 @@ function render(keep){ EFF={};
 
 // =================== EVENTS ===================
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-rdsel],[data-rmode],[data-li],[data-rdcfg],[data-tmode],[data-own],[data-shmode],[data-night],[data-qnav]"); if(!el) return;
+  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-newadd],[data-newx],[data-rdsel],[data-rmode],[data-li],[data-rdcfg],[data-tmode],[data-own],[data-shmode],[data-night],[data-qnav]"); if(!el) return;
   const ds=el.dataset;
   if(ds.go){ location.hash = ds.go===TODAY()? "today" : "day-"+ds.go; return; }
   if(ds.rdsel){ const [k,c]=ds.rdsel.split("|"), cur=rdSel(k), nv=cur.includes(c)? cur.filter(x=>x!==c) : cur.concat(c); setRdSel(k,nv);
     document.querySelectorAll(`[data-rdsel^="${k}|"]`).forEach(b=>b.classList.toggle("on",nv.includes(b.dataset.rdsel.split("|")[1])));
     document.querySelectorAll(`details[data-pc^="${k}|"]`).forEach(b=>{ if(b.open) openPiece(b); }); return; }
+  if(ds.newadd){ setTrackOn(ds.newadd,true); S.newsSeen=(S.newsSeen||[]).concat(ds.newadd); save(); toast("נוסף ללוח"); refresh(); return; }
+  if(ds.newx){ S.newsSeen=NEWS.map(x=>x[0]); save(); refresh(); return; }
   if(ds.shmode){ S.tracks.shl.mode=ds.shmode; save(); refresh(); return; }
   if(ds.night){ const u=uiCfg(); u.rnight=!u.rnight; localStorage.setItem("ui",JSON.stringify(u)); document.documentElement.classList.toggle("rnight",!!u.rnight); document.querySelectorAll("[data-night]").forEach(b=>b.classList.toggle("on",!!u.rnight)); return; }
   if(ds.qnav){ location.hash="#q="+encodeURIComponent(ds.qnav); return; }
