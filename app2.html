@@ -802,13 +802,13 @@ function leaves(x,out,depth){ if(Array.isArray(x)){ x.forEach((y,i)=>{ if(depth>
 // the reading pieces of a day: one per chapter (or amud), each with its own commentators
 function pieces(k,t){ const P=trackPortion(k,t); if(!P.units||!P.units.length) return []; const G=groups(k,P.units), out=[];
   G.forEach((g,gi)=>{
-    if(k==="gemara") g.units.forEach(u=>{ const m=MAS[u.mi]; if(m[4]) return; (u.amud?[u.amud]:["a","b"]).forEach(am=>out.push({gi,ref:m[0]+" "+u.d+am,lk:{a:1,tail:m[0],ch:u.d+am},title:m[1]+" דף "+gem(u.d)+" "+(am==="a"?"ע״א":"ע״ב"),num:false})); });
-    else if(k==="tanakh") g.units.forEach(u=>out.push({gi,ref:TNK[u.b][0]+"."+(u.c+1),lk:{a:1,tail:TNK[u.b][0],ch:String(u.c+1)},title:TNK[u.b][1]+" פרק "+gem(u.c+1),loc:()=>{ const T=tnkBook(u.b); return T&&T[u.c]? T[u.c].map((v,i)=>[gem(i+1),esc(v)]) : null; }}));
+    if(k==="gemara") g.units.forEach(u=>{ const m=MAS[u.mi]; if(m[4]) return; (u.amud?[u.amud]:["a","b"]).forEach(am=>out.push({gi,ref:m[0]+" "+u.d+am,lk:{a:1,tail:m[0].replace(/_/g," "),ch:u.d+am},title:m[1]+" דף "+gem(u.d)+" "+(am==="a"?"ע״א":"ע״ב"),num:false})); });
+    else if(k==="tanakh") g.units.forEach(u=>out.push({gi,ref:TNK[u.b][0]+"."+(u.c+1),lk:{a:1,tail:TNK[u.b][0].replace(/_/g," "),ch:String(u.c+1)},title:TNK[u.b][1]+" פרק "+gem(u.c+1),loc:()=>{ const T=tnkBook(u.b); return T&&T[u.c]? T[u.c].map((v,i)=>[gem(i+1),esc(v)]) : null; }}));
     else if(k==="parasha") g.units.forEach(u=>{ const A=PAR[u.pi][1][u.a]; for(let c=A[1]; c<=A[3]; c++){ const cc=c;
         out.push({gi,ref:TNK[A[0]][0]+"."+c+"."+(c===A[1]?A[2]:1)+"-"+(c===A[3]?A[4]:999),title:ALIYA[u.a]+" · "+TNK[A[0]][1]+" "+gem(c),
-          lo:c===A[1]?A[2]:1, hi:c===A[3]?A[4]:0, off:c===A[1]?A[2]:1, lk:{a:c===A[1]?A[2]:1,tail:TNK[A[0]][0],ch:String(c)}, loc:function(){ const T=tnkBook(A[0]); if(!T||!T[cc-1]) return null; const hi=this.hi||T[cc-1].length; const o=[]; for(let v=this.lo; v<=hi; v++) o.push([gem(v),esc(T[cc-1][v-1])]); return o; }}); } });
+          lo:c===A[1]?A[2]:1, hi:c===A[3]?A[4]:0, off:c===A[1]?A[2]:1, lk:{a:c===A[1]?A[2]:1,tail:TNK[A[0]][0].replace(/_/g," "),ch:String(c)}, loc:function(){ const T=tnkBook(A[0]); if(!T||!T[cc-1]) return null; const hi=this.hi||T[cc-1].length; const o=[]; for(let v=this.lo; v<=hi; v++) o.push([gem(v),esc(T[cc-1][v-1])]); return o; }}); } });
     else if(k==="mishnah") groupBy(g.units,u=>u.t+"."+u.p).forEach(us=>{ const a=us[0], z=us[us.length-1];
-        out.push({gi,off:a.m+1,lk:{a:a.m+1,tail:MISH[a.t][0],ch:String(a.p+1)},ref:"Mishnah "+MISH[a.t][0]+"."+(a.p+1)+"."+(a.m+1)+"-"+(z.m+1),title:"משנה "+MISH[a.t][1]+" פרק "+gem(a.p+1),loc:()=>MTEXT? us.map(u=>[gem(u.m+1),esc(MTEXT[u.t][2][u.p][u.m])]) : null}); });
+        out.push({gi,off:a.m+1,lk:{a:a.m+1,tail:MISH[a.t][0].replace(/_/g," "),ch:String(a.p+1)},ref:"Mishnah "+MISH[a.t][0]+"."+(a.p+1)+"."+(a.m+1)+"-"+(z.m+1),title:"משנה "+MISH[a.t][1]+" פרק "+gem(a.p+1),loc:()=>MTEXT? us.map(u=>[gem(u.m+1),esc(MTEXT[u.t][2][u.p][u.m])]) : null}); });
     else if(k==="rambam") g.units.forEach(u=>{ const nm=LEARN.names[u.n]; out.push({gi,ref:"Mishneh Torah, "+nm[0]+"."+u.p,lk:{a:1,tail:nm[0],ch:String(u.p)},title:nm[1]+" פרק "+gem(u.p)}); });
     else if(k==="tehillim") g.units.forEach(u=>{ for(let c=u.a[0]; c<=u.b[0]; c++){ const f=(c===u.a[0]&&u.a[1])?u.a[1]:0, to=(c===u.b[0]&&u.b[1])?u.b[1]:0, cc=c;
         out.push({gi,off:f||1,lk:{a:f||1,tail:"Psalms",ch:String(c)},ref:"Psalms."+c+(f||to?"."+(f||1)+"-"+(to||999):""),title:"תהילים "+gem(c)+(f||to?" ("+gem(f||1)+"–"+(to?gem(to):"סוף")+")":"")+(u.lab?" · "+u.lab:""),
@@ -836,23 +836,26 @@ function pieceBox(p){ const sel=rdSel(p.k);
     ${p.all.length?`<div class="rd-bar">${p.cm.map(c=>`<button class="btn small ${sel.includes(c[0])?"on":""}" data-rdsel="${p.k}|${c[0]}">${c[1]}</button>`).join("")}<button class="btn small" data-rdcfg="1" aria-label="בחירת פרשנים">⚙ פרשנים</button><button class="btn small ${uiCfg().rnight?"on":""}" data-night="1" aria-label="מצב קריאה לילי">🌙</button></div>
     <div class="rd-cfg box" hidden><p class="note" style="margin-top:0">אילו פרשנים יופיעו ב${esc(p.k[1]===":"?(cGet(p.k)||{}).name||"":NAMES[p.k]||"")}:</p>
       ${p.all.map(c=>`<label class="check" style="margin:4px 0"><input type="checkbox" data-rdpick="${p.k}|${c[0]}" ${p.cm.some(x=>x[0]===c[0])?"checked":""}> ${c[1]}</label>`).join("")}</div>
-    ${p.cm.length?"":`<p class="hint" style="margin:0 0 6px">לא נבחרו פרשנים. אפשר לבחור ב־⚙.</p>`}<p class="hint" style="margin:0 0 6px;${p.cm.length?"":"display:none"}">לחיצה על ${p.k==="gemara"||p.k==="tanya"?"שורה":p.k==="mishnah"?"משנה":p.k==="rambam"?"הלכה":"פסוק"} מציגה את הפירושים עליה. פרשן מסומן מוצג לאורך כל הפרק.</p>`:""}
+    ${p.cm.length?"":`<p class="hint" style="margin:0 0 6px">לא נבחרו פרשנים. אפשר לבחור ב־⚙.</p>`}<p class="hint" style="margin:0 0 6px;${p.cm.length?"":"display:none"}">${p.k==="gemara"||p.k==="tanya"?"לחיצה על שורה מציגה את הפירושים עליה":p.k==="mishnah"?"לחיצה על משנה מציגה את הפירושים עליה":p.k==="rambam"?"לחיצה על הלכה מציגה את הפירושים עליה":p.sa||p.k==="mb"||p.k.indexOf("sa:")===0?"לחיצה על סעיף מציגה את הפירושים עליו":"לחיצה על פסוק מציגה את הפירושים עליו"}. פרשן מסומן מוצג לאורך כל הפרק.</p>`:""}
     ${p.all.length?"":`<div class="rd-bar"><button class="btn small ${uiCfg().rnight?"on":""}" data-night="1" aria-label="מצב קריאה לילי">🌙 קריאת לילה</button></div>`}
     <div class="rd-out"><p class="note">טוען…</p></div>
-    <p class="src"><a style="color:var(--tc)" href="${SITE+encodeURIComponent(p.ref.replace(/ /g,"_"))}?lang=he" target="_blank" rel="noopener">פתח בספריא ↗</a></p></details>`; }
+    </details>`; }
 let SEARCHP=null;
 function searchView(){ const q=decodeURIComponent((location.hash.split("q=")[1]||"")); return `<div class="card"><div class="label">חיפוש</div>
     <form id="qf" class="row" style="gap:6px;margin-top:8px"><input id="qi" value="${esc(q)}" placeholder="למשל: ברכות ה׳ ע״א · בראשית כט · משנה פסחים ז · הלכות שבת ג · או״ח רמב" style="flex:1;font-size:17px;padding:8px"><button class="btn primary">חפש</button></form>
     <p class="hint" style="margin-top:6px">כותבים מקום בספר (אפשר בעברית) ומקבלים את הפרק עם הפרשנים, בלי קשר ללוח.</p></div><div id="qres"></div>`; }
 function qKind(r){ if(/^Mishnah /.test(r)) return "mishnah"; if(/^Mishneh Torah, /.test(r)) return "rambam"; if(/^Psalms/.test(r)) return "tehillim";
   const sa=SA.find(x=>r.indexOf(x[4]+" ")===0||r===x[4]); if(sa) return "sa:"+sa[3];
-  if(MAS.some(m=>r.indexOf(m[0]+" ")===0||r===m[0])) return "gemara"; if(TNK.some(b=>r.indexOf(b[0]+" ")===0||r===b[0])) return "tanakh"; return ""; }
+  const sp=x=>x.replace(/_/g," ");
+  if(MAS.some(m=>r.indexOf(sp(m[0])+" ")===0||r===sp(m[0]))) return "gemara"; if(TNK.some(b=>r.indexOf(sp(b[0])+" ")===0||r===sp(b[0]))) return "tanakh"; return ""; }
 function qPiece(r){ const kind=qKind(r), sp=r.lastIndexOf(" "); let book=r, ch="";
   if(sp>0 && /^\d/.test(r.slice(sp+1))){ book=r.slice(0,sp); ch=r.slice(sp+1).split(":")[0].split("-")[0]; }
   if(!ch) ch= kind==="gemara"? "2a" : "1";
   if(kind==="gemara" && /^\d+$/.test(ch)) ch+="a";
   const ref=book+" "+ch, tail=book.replace(/^Mishnah /,"").replace(/^Mishneh Torah, /,"").replace(/^Shulchan Arukh, /,""), p={q:1,k:kind||"q",i:0,d:"",ref,book,ch,title:ref,num:kind==="gemara"?false:undefined,lk:{a:1,tail,ch}};
   if(kind.indexOf("sa:")===0){ const sa=SA.find(x=>x[3]===kind.slice(3)); p.sa=sa; p.lk=Object.assign(p.lk,{sim:ref,b:(SAL[sa[3]][+ch-1]||99),num:true,sa:true}); }
+  if(kind==="tanakh"){ const bi=TNK.findIndex(b=>b[0].replace(/_/g," ")===book); if(bi>=0) p.loc=()=>{ const T=tnkBook(bi); return T&&T[+ch-1]? T[+ch-1].map((v,i)=>[gem(i+1),esc(v)]) : null; }; }
+  if(kind==="tehillim") p.loc=()=>{ const T=IS_APK&&tnkBook(26); return T&&T[+ch-1]? T[+ch-1].map((v,i)=>[gem(i+1),esc(v)]) : null; };
   p.all=kind? commAll(kind) : []; p.cm=kind? commOn(kind) : []; return p; }
 function qNav(p,dir){ const ch=p.ch; if(/^\d+[ab]$/.test(ch)){ const d=parseInt(ch), a=ch.slice(-1); if(dir>0) return p.book+" "+(a==="a"? d+"b" : (d+1)+"a"); return p.book+" "+(a==="b"? d+"a" : (d-1)+"b"); }
   if(/^\d+$/.test(ch)){ const n=+ch+dir; return n>=1? p.book+" "+n : null; } return null; }
@@ -875,7 +878,7 @@ function linesFrom(t,p){ let L=Array.isArray(t)? t : [t]; if(p.from) L=L.slice(M
 function perLine(t,n){ if(n===1) return [leaves(t,[],0).filter(Boolean)]; const A=Array.isArray(t)? t : [t]; const o=[]; for(let i=0;i<n;i++) o.push(leaves(A[i]===undefined? [] : A[i],[],0).filter(Boolean)); return o; }
 async function openPiece(box){ const p=pieceOf(box); if(!p) return; const st=PC[p.ref]||(PC[p.ref]={comm:{},open:{}});
   if(!st.lines){ const loc=p.loc&&p.loc(); if(loc) st.lines=loc;
-    else { try{ const r=await sfText(p.ref); st.lines=linesFrom(r.t,p); }catch(e){ box.querySelector(".rd-out").innerHTML=`<p class="note">${navigator.onLine===false?"אין חיבור לאינטרנט. טקסט שנפתח פעם אחת נשמר ונפתח גם בלי חיבור.":"לא הצלחתי לטעון את הטקסט מספריא כרגע. נסו שוב מאוחר יותר."}</p>`; return; } } }
+    else { try{ const r=await sfText(p.ref); st.lines=linesFrom(r.t,p); }catch(e){ box.querySelector(".rd-out").innerHTML=`<p class="note">${navigator.onLine===false?"אין חיבור לאינטרנט. טקסט שנפתח פעם אחת נשמר ונפתח גם בלי חיבור.":"לא הצלחתי לטעון את הטקסט מספריא כרגע. נסו שוב מאוחר יותר."} <a href="${SITE+encodeURIComponent(p.ref.replace(/ /g,"_"))}?lang=he" target="_blank" rel="noopener">פתח בספריא</a></p>`; return; } } }
   drawPiece(box,p,st); }
 async function sfLinks(ref){ const key="L|"+ref, c=txGet(key); if(c!==undefined) return c.t;
   let j=null; const path="links/"+encodeURIComponent(ref)+"?with_text=0";
