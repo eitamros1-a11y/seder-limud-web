@@ -1359,6 +1359,10 @@ function setupView(){
     ${FRIEND?`<div class="field"><span>השם שלי</span><div class="row" style="gap:6px"><input id="my-name" value="${esc(S.name||"")}" style="flex:1"><button class="btn small" id="my-name-save">שמור</button></div></div>`:""}
     <button class="btn small" id="share-friends">שלח קישור לחבר</button>
     ${FRIEND&&!IS_APK&&/Android/i.test(navigator.userAgent)?`<p class="note" style="margin-top:10px">יש גם אפליקציה לאנדרואיד, עם תזכורות ווידג׳ט: ${linkBtn(FRIEND_URL+"seder-limud-friends.apk","הורד את האפליקציה")} ההתקדמות כאן לא עוברת אליה אוטומטית – אפשר להעביר בגיבוי לקובץ.</p>`:""}</div>
+  ${FRIEND?`<div class="card"><div class="label">בקשת לימוד שאין באפליקציה</div>
+    <p class="note" style="margin-top:4px">ספר שיש בספריא אפשר להוסיף לבד: למעלה, "+ הוסף לימוד חדש". לספר שאין שם, ללוח קבוע (למשל ירושלמי יומי), לפרשנים שחסרים או לתקלה – כתוב כאן, וזה יישלח במייל.</p>
+    <textarea id="req-txt" rows="3" style="width:100%;font:inherit;padding:8px" placeholder="מה היית רוצה שיתווסף?"></textarea>
+    <button class="btn small primary" id="req-send" style="margin-top:6px">שלח בקשה</button></div>`:""}
   <div class="card"><div class="label">שמירה</div><p class="note">ההתקדמות, ההערות וההרחבות נשמרות בטלפון הזה. פעם בשבוע נשמר גיבוי אוטומטי בתיקייה Download/SederLimud בטלפון.</p>
     <div class="row"><button class="btn small" id="bkf">שמור גיבוי לקובץ</button><button class="btn small" id="bk">שתף גיבוי</button></div>
     <div class="row" style="margin-top:8px"><button class="btn small" id="rsf">שחזר מקובץ</button><button class="btn small" id="rs">שחזר מטקסט</button></div>
@@ -1366,7 +1370,15 @@ function setupView(){
     <div class="sep"><button class="btn small" id="reset">איפוס כל הנתונים</button><div id="resetConfirm"></div></div></div>`;
   return h;
 }
+const REQ_MAIL="eitam.ros1@gmail.com";
+function sendRequest(){ const t=($("#req-txt")||{}).value||""; if(!t.trim()){ toast("כתוב מה לבקש"); return; }
+  const su="בקשת לימוד – סדר לימוד"+(S.name?" ("+S.name+")":""), body=t.trim()+"\n\n— "+(S.name||"")+" · "+(IS_APK?"אנדרואיד":"דפדפן");
+  const url= IS_APK? "https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(REQ_MAIL)+"&su="+encodeURIComponent(su)+"&body="+encodeURIComponent(body)
+    : "mailto:"+REQ_MAIL+"?subject="+encodeURIComponent(su)+"&body="+encodeURIComponent(body);
+  if(IS_APK){ const a=document.createElement("a"); a.href=url; a.target="_blank"; document.body.appendChild(a); a.click(); a.remove(); } else location.href=url;
+  toast("נפתחת הודעת מייל – רק לשלוח"); }
 function bindSetup(){
+  if($("#req-send")) $("#req-send").onclick=sendRequest;
   if($("#share-friends")) $("#share-friends").onclick=shareFriends;
   if($("#my-name-save")) $("#my-name-save").onclick=()=>{ const n=$("#my-name").value.trim(); if(!n) return; S.name=n; save(); applyUI(); toast("נשמר"); };
   document.querySelectorAll("[data-fold]").forEach(b=>b.onclick=()=>{ const u=uiCfg(); u.fold=b.dataset.fold==="1"; localStorage.setItem("ui",JSON.stringify(u)); refresh(); });
