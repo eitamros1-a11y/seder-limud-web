@@ -748,7 +748,7 @@ const FONTS=[["frank-ruhl-libre","פרנק ריהל",[400,700,900],"serif"],["da
   ["arimo","אריאל (כמו Arial)",[400,700],"sans-serif"],["assistant","אסיסטנט (דומה לקליברי)",[400,700],"sans-serif"],["heebo","היבו",[400,700,900],"sans-serif"],
   ["rubik","רוביק",[400,700,900],"sans-serif"],["noto-sans-hebrew","נוטו סנס",[400,700,900],"sans-serif"],["alef","אלף",[400,700],"sans-serif"],
   ["varela-round","ורלה עגול",[400],"sans-serif"],["suez-one","סואץ (כותרות)",[400],"serif"],["system","גופן המכשיר",[],"sans-serif"]];
-function fontCss(){ return FONTS.filter(f=>f[2].length).map(f=>f[2].map(w=>`@font-face{font-family:"SL ${f[0]}";font-style:normal;font-weight:${w===400?"100 599":w===700?"600 849":"850 1000"};font-display:swap;src:url("${AB}fonts/${f[0]}-${w}.woff2") format("woff2")}`).join("")).join(""); }
+function fontCss(){ return FONTS.filter(f=>f[2].length).map(f=>f[2].map(w=>`@font-face{font-family:"SL ${f[0]}";font-style:normal;font-weight:${w===400?"100 599":w===700?"600 849":"850 1000"};font-display:swap;src:url("${AB}fonts/${f[0]}-${w}.woff2") format("woff2"),url("https://eitamros1-a11y.github.io/seder-limud-web/fonts/${f[0]}-${w}.woff2") format("woff2")}`).join("")).join(""); }
 function fontStack(id,dflt){ const f=FONTS.find(x=>x[0]===id)||FONTS.find(x=>x[0]===dflt); return f[0]==="system"? "system-ui,sans-serif" : `"SL ${f[0]}",${f[3]}`; }
 (function(){ const st=document.createElement("style"); st.textContent=fontCss(); document.head.appendChild(st); })();
 let nightTimer=null;
