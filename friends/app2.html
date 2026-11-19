@@ -1516,7 +1516,7 @@ function bindWelcome(){ const segv=id=>{ const b=document.querySelector("#"+id+"
     const mb=segv("w-mb"), sh=segv("w-shl"); x.tracks.mb={on:mb==="1"}; x.tracks.shl={on:sh!=="0",mode:sh==="0"?"cc":sh};
     if(mb==="own") x.custom.push(Object.assign(saTrack(0,1,5,true,"u"+(Date.now()+2).toString(36),"משנה ברורה בקצב אישי"),{own:"mb"}));
     if(segv("w-sa")==="1") x.custom.push(Object.assign(saAll(+$("#w-saper").value,true),{id:"u"+(Date.now()+3).toString(36)}));
-    x.migMB=true;
+    x.migMB=true; x.newsSeen=NEWS.map(n=>n[0]);
     const kb=+segv("w-kook"); x.tracks.kook={on:kb>=0,segs:[{from:d,pos:{b:Math.max(0,kb),c:KOOK[Math.max(0,kb)][2],p:1},per:+$("#w-kper").value}],chLen:{}};
     S=migrate(x); save(); applyUI(); location.hash="#today"; render(false); toast("בהצלחה, "+name+"!"); };
   sync(); }
