@@ -5,10 +5,10 @@
 <!--SEDER-LIMUD-PAGE-->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>סדר לימוד יומי</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
 :root{
+  --ft:"SL frank-ruhl-libre","Frank Ruhl Libre",serif; --fu:"SL assistant",Assistant,system-ui,sans-serif;
   --bg:#f6f1e7; --card:#fffdf8; --ink:#2b2318; --muted:#7a6d5c; --line:#e4dacb;
   --accent:#8a3b12; --ok:#3e7b4f; --ok-bg:#e6f1e8; --warn:#9a6a0b; --warn-bg:#fbf1d9; --off:#ece5d8;
   --t-gemara:#8a3b12; --t-mishnah:#2f5d8a; --t-tanakh:#6b4c9a; --t-kook:#2f7a6b; --t-parasha:#a8324a; --t-custom:#7a6a2f; --t-rambam:#4a6b1f; --t-tehillim:#1f6b8a; --t-tanya:#7a3f8a; --t-mb:#2f5d50; --t-shl:#8a5a1f;
@@ -29,10 +29,10 @@ html[data-theme=light]{
 }
 html[data-theme=light] .btn.primary{color:#fff}
 *{box-sizing:border-box}
-html,body{overflow-x:hidden;max-width:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Assistant,system-ui,sans-serif;font-size:17px;line-height:1.5}
+html,body{overflow-x:hidden;max-width:100%;margin:0;background:var(--bg);color:var(--ink);font-family:var(--fu);font-size:17px;line-height:1.5}
 .wrap{max-width:640px;margin:0 auto;padding:14px 14px 96px}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:2px 0 8px}
-h1{font-family:"Frank Ruhl Libre",serif;font-weight:900;font-size:25px;margin:0;color:var(--accent)}
+h1{font-family:var(--ft);font-weight:900;font-size:25px;margin:0;color:var(--accent)}
 .sub{color:var(--muted);font-size:14px}
 .daynav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
 .daynav .mid{text-align:center;flex:1}
@@ -49,12 +49,12 @@ html.rnight details.rdp .rl{font-size:22px;line-height:1.85}
 html.rnight details.rdp .cmb{background:#1c1a17;color:#d8cfbf;font-size:18px}
 html.rnight details.rdp .rl.op{background:#2a2620}
 .hsearch{font-size:20px;text-decoration:none;padding:2px 6px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
-.rl{font-family:"Frank Ruhl Libre",serif;font-size:19px;line-height:1.75;padding:3px 4px;border-radius:6px}
+.rl{font-family:var(--ft);font-size:19px;line-height:1.75;padding:3px 4px;border-radius:6px}
 .rl.tap{cursor:pointer} .rl.op{background:color-mix(in srgb,var(--tc) 12%,transparent)}
 .rn{color:var(--tc);font-weight:700;font-size:14px;margin-left:6px;font-family:inherit}
 .cmb{border-right:3px solid var(--tc);padding:4px 10px;margin:2px 4px 10px 0;font-size:16px;line-height:1.65;background:color-mix(in srgb,var(--tc) 5%,transparent);border-radius:4px}
 .cn{color:var(--tc)}
-.rtext{font-family:"Frank Ruhl Libre",serif;font-size:19px;line-height:1.8;margin:0 0 10px}
+.rtext{font-family:var(--ft);font-size:19px;line-height:1.8;margin:0 0 10px}
 .rtext.cm{font-size:17px;line-height:1.7}
 .rsep{border-top:1px dashed var(--line);margin:8px 0}
 .rd-bar{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
@@ -62,7 +62,7 @@ html.rnight details.rdp .rl.op{background:#2a2620}
 .thead{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .tname{font-weight:700;color:var(--tc,var(--muted));font-size:15px}
 .label{font-size:13px;color:var(--muted)}
-.big{font-family:"Frank Ruhl Libre",serif;font-weight:900;font-size:25px;line-height:1.3;margin:6px 0 2px}
+.big{font-family:var(--ft);font-weight:900;font-size:25px;line-height:1.3;margin:6px 0 2px}
 .big small{font-size:16px;font-weight:500;color:var(--muted)}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .btn{appearance:none;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;
@@ -85,7 +85,7 @@ body{overflow-x:clip}
 .card.cc > .thead::after{content:"‹";position:absolute;left:2px;top:50%;transform:translateY(-50%) rotate(90deg);font-size:22px;color:var(--tc,var(--muted));transition:transform .2s}
 .card.cc.open > .thead::after{transform:translateY(-50%) rotate(-90deg)}
 .card.cc:not(.open){padding-bottom:12px}
-.ccs{font-family:"Frank Ruhl Libre",serif;font-size:18px;margin-top:4px;cursor:pointer;color:var(--ink)}
+.ccs{font-family:var(--ft);font-size:18px;margin-top:4px;cursor:pointer;color:var(--ink)}
 .card.cc.open > .ccs{display:none}
 .card.cc:not(.open) > .ccb{display:none}
 .jump{position:sticky;top:0;z-index:4;display:flex;gap:6px;overflow-x:auto;padding:8px 2px;margin:0 -2px 6px;background:var(--bg);scrollbar-width:none}
@@ -97,10 +97,10 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px
 nav a{flex:1;max-width:160px;text-align:center;padding:12px 2px;color:var(--muted);text-decoration:none;font-weight:600;font-size:15px}
 nav a.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
 .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
-.cell{border:1px solid var(--line);border-radius:10px;padding:6px 3px;text-align:center;cursor:pointer;background:var(--card);font-family:"Frank Ruhl Libre",serif;font-weight:700;font-size:16px;user-select:none}
+.cell{border:1px solid var(--line);border-radius:10px;padding:6px 3px;text-align:center;cursor:pointer;background:var(--card);font-family:var(--ft);font-weight:700;font-size:16px;user-select:none}
 .cell.done{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
 .cell.today{outline:2px solid var(--accent);outline-offset:1px}
-.mhead{font-family:"Frank Ruhl Libre",serif;font-weight:700;font-size:18px;margin:12px 0 8px;color:var(--tc,var(--accent))}
+.mhead{font-family:var(--ft);font-weight:700;font-size:18px;margin:12px 0 8px;color:var(--tc,var(--accent))}
 .field{margin-bottom:12px}
 .field>span{display:block;font-weight:600;margin-bottom:5px;font-size:15px}
 .grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
@@ -114,16 +114,16 @@ nav a.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
 .toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9}
 .toast.on{opacity:.95}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
-.stats b{display:block;font-family:"Frank Ruhl Libre",serif;font-size:24px}
+.stats b{display:block;font-family:var(--ft);font-size:24px}
 .stats span{font-size:13px;color:var(--muted)}
 .sep{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
 details.box{margin-top:10px;border:1px solid var(--line);border-radius:12px;padding:0 12px;background:var(--bg)}
 details.box>summary{cursor:pointer;padding:10px 0;font-weight:600;color:var(--tc);list-style-position:inside}
-.mtext{font-family:"Frank Ruhl Libre",serif;font-size:19px;line-height:1.75;margin:0 0 12px}
+.mtext{font-family:var(--ft);font-size:19px;line-height:1.75;margin:0 0 12px}
 .mtext b{color:var(--tc);font-size:15px;margin-left:6px}
 .dlg{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
 .exp{font-size:16px;line-height:1.7;margin:4px 0 10px}
-.exp h4{font-family:"Frank Ruhl Libre",serif;font-size:17px;color:var(--tc);margin:12px 0 4px}
+.exp h4{font-family:var(--ft);font-size:17px;color:var(--tc);margin:12px 0 4px}
 .exp p{margin:4px 0}
 .exp ul{margin:4px 0;padding-right:20px}
 .exp .src{font-size:12px;color:var(--muted)}
@@ -153,7 +153,7 @@ details.box>summary{cursor:pointer;padding:10px 0;font-weight:600;color:var(--tc
 .hist i{height:14px;border-radius:4px;background:var(--line);display:block}
 .hist i.on{background:var(--tc)}
 .siyum{border:1px solid var(--tc);border-radius:12px;padding:12px;margin-top:10px;background:var(--bg)}
-.siyum .hd{font-family:"Frank Ruhl Libre",serif;font-size:17px;line-height:1.7}
+.siyum .hd{font-family:var(--ft);font-size:17px;line-height:1.7}
 .hist i.off{background:transparent;border:1px dashed var(--line)}
 </style>
 </head>
@@ -742,11 +742,21 @@ function updBanner(){ if(!IS_APK) return "";
   if(apkNewer()) return `<div class="card" style="border-top-color:var(--accent)"><b>יש גרסה חדשה של האפליקציה (${esc(APPINFO.apk)})</b><p class="note">מורידים ומתקינים מעל הקיימת. ההתקדמות וההערות נשמרות.</p>${linkBtn(APPINFO.apkUrl,"הורד והתקן")}</div>`;
   return ""; }
 function uiCfg(){ try{ return JSON.parse(localStorage.getItem("ui")||"{}"); }catch(e){ return {}; } }
+// fonts: bundled with the app (Hebrew), the learner picks one for the texts and one for the rest
+const FONTS=[["frank-ruhl-libre","פרנק ריהל",[400,700,900],"serif"],["david-libre","דוד",[400,700],"serif"],["tinos","טיימס (כמו Times)",[400,700],"serif"],
+  ["noto-serif-hebrew","נוטו סריף",[400,700,900],"serif"],["miriam-libre","מרים",[400,700],"sans-serif"],["noto-rashi-hebrew","כתב רש״י",[400,700,900],"serif"],
+  ["arimo","אריאל (כמו Arial)",[400,700],"sans-serif"],["assistant","אסיסטנט (דומה לקליברי)",[400,700],"sans-serif"],["heebo","היבו",[400,700,900],"sans-serif"],
+  ["rubik","רוביק",[400,700,900],"sans-serif"],["noto-sans-hebrew","נוטו סנס",[400,700,900],"sans-serif"],["alef","אלף",[400,700],"sans-serif"],
+  ["varela-round","ורלה עגול",[400],"sans-serif"],["suez-one","סואץ (כותרות)",[400],"serif"],["system","גופן המכשיר",[],"sans-serif"]];
+function fontCss(){ return FONTS.filter(f=>f[2].length).map(f=>f[2].map(w=>`@font-face{font-family:"SL ${f[0]}";font-style:normal;font-weight:${w===400?"100 599":w===700?"600 849":"850 1000"};font-display:swap;src:url("${AB}fonts/${f[0]}-${w}.woff2") format("woff2")}`).join("")).join(""); }
+function fontStack(id,dflt){ const f=FONTS.find(x=>x[0]===id)||FONTS.find(x=>x[0]===dflt); return f[0]==="system"? "system-ui,sans-serif" : `"SL ${f[0]}",${f[3]}`; }
+(function(){ const st=document.createElement("style"); st.textContent=fontCss(); document.head.appendChild(st); })();
 let nightTimer=null;
 function nightNow(){ const h=new Date().getHours(); return h>=19||h<6; }
 function applyUI(){ const c=uiCfg(); let th=c.theme||(IS_APK?"light":"auto");
   if(th==="night"){ th=nightNow()?"dark":"light"; if(!nightTimer) nightTimer=setInterval(()=>{ if((uiCfg().theme)==="night") applyUI(); },300000); }
   document.documentElement.classList.toggle("rnight",!!c.rnight);
+  document.documentElement.style.setProperty("--ft",fontStack(c.ft,"frank-ruhl-libre")); document.documentElement.style.setProperty("--fu",fontStack(c.fu,"assistant"));
   const h1=document.querySelector("h1"); if(h1) h1.textContent= S.name? "סדר הלימוד של "+S.name : "סדר לימוד"; if(S.name) document.title="סדר הלימוד של "+S.name;
   if(th==="auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme",th);
   const z=c.zoom||100; try{ if(window.Android&&Android.setTextZoom) Android.setTextZoom(z); else document.documentElement.style.zoom=(z/100); }catch(e){} }
@@ -1356,6 +1366,9 @@ function setupView(){
     <div class="row" style="margin-top:8px"><button class="btn small" data-chkupd="1">בדוק עכשיו</button></div></div>`:""}
   <div class="card"><div class="label">תצוגה</div>
     <div class="field" style="margin-top:8px"><span>מצב תצוגה</span><div class="seg" id="seg-theme">${(IS_APK?[["light","בהיר"],["dark","כהה"],["night","לילה אוטומטי"]]:[["auto","לפי המכשיר"],["light","בהיר"],["dark","כהה"],["night","לילה אוטומטי"]]).map(o=>`<button data-th="${o[0]}" class="${(uiCfg().theme||(IS_APK?"light":"auto"))===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>
+    <div class="field"><span>גופן הטקסטים (גמרא, פסוקים, פרשנים)</span><select id="sel-ft">${FONTS.map(f=>`<option value="${f[0]}" ${(uiCfg().ft||"frank-ruhl-libre")===f[0]?"selected":""}>${f[1]}</option>`).join("")}</select>
+      <div class="rtext" style="margin:6px 0 0;font-size:20px">בְּרֵאשִׁית בָּרָא אֱלֹהִים · אמר רבי יוחנן</div></div>
+    <div class="field"><span>גופן הממשק (כפתורים, הסברים)</span><select id="sel-fu">${FONTS.map(f=>`<option value="${f[0]}" ${(uiCfg().fu||"assistant")===f[0]?"selected":""}>${f[1]}</option>`).join("")}</select></div>
     <div class="field"><span>גודל הטקסט</span><div class="seg" id="seg-zoom">${[[90,"קטן"],[100,"רגיל"],[115,"גדול"],[130,"גדול מאוד"]].map(o=>`<button data-z="${o[0]}" class="${(uiCfg().zoom||100)===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>
     <div class="field"><span>הלימודים במסך היומי</span><div class="seg" id="seg-fold">${[["1","מקופלים – פותחים אחד"],["0","פתוחים"]].map(o=>`<button data-fold="${o[0]}" class="${(uiCfg().fold===false?"0":"1")===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div></div>
   <div class="card"><div class="label">שיתוף עם חברים</div><p class="note" style="margin-top:4px">חברים יכולים לפתוח את הקישור, לכתוב את השם שלהם ולבחור לעצמם את הלימודים. ההתקדמות של כל אחד נשמרת רק אצלו.</p>
@@ -1408,6 +1421,8 @@ function bindSetup(){
   const setUI=o=>{ const c=Object.assign(uiCfg(),o); try{ localStorage.setItem("ui",JSON.stringify(c)); }catch(e){} applyUI(); refresh(); };
   document.querySelectorAll("#seg-theme button").forEach(b=>b.onclick=()=>setUI({theme:b.dataset.th}));
   document.querySelectorAll("#seg-zoom button").forEach(b=>b.onclick=()=>setUI({zoom:+b.dataset.z}));
+  if($("#sel-ft")) $("#sel-ft").onchange=e=>setUI({ft:e.target.value});
+  if($("#sel-fu")) $("#sel-fu").onchange=e=>setUI({fu:e.target.value});
   $("#hol").onchange=e=>{ S.noHol=!e.target.checked; save(); toast("עודכן"); };
   const nx0=toISO(nextStudy(todayUTC()));
   document.querySelectorAll("[data-con]").forEach(el=>el.onchange=()=>{ const c=cGet("c:"+el.dataset.con); if(c){ c.on=el.checked; save(); } });
