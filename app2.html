@@ -385,6 +385,7 @@ function trackObj(k){ return k==="gemara"? S.gemara : k[1]===":"? (cGet(k)||{}) 
 // removing a study pauses it; restoring resumes from where it stopped
 function setTrackOn(k,v){ const o=trackObj(k); if(!!o.on===!!v) return; const today=todayUTC(), d=TODAY();
   if(!v){ o.on=false; o.pausedAt=d; return; }
+  if(!o.pausedAt) o.onSince=d;
   const pa=o.pausedAt? parseISO(o.pausedAt) : null;
   if(pa!==null && pa<today){
     const from=nextOn(k, logged(k,o.pausedAt)? pa+DAY : pa);
@@ -438,6 +439,8 @@ function migrate(x){
   return x;
 }
 function postMigrate(){ let ch=false;
+  if(!S.migMk){ ["rambam","tehillim","tanya"].forEach(k=>{ if(!S.tracks[k].onSince) S.tracks[k].onSince=FRIEND? (S.since||TODAY()) : "2026-11-17"; });
+    ["mb","shl"].forEach(k=>{ if(!S.tracks[k].onSince) S.tracks[k].onSince=FRIEND? (S.since||TODAY()) : "2026-11-19"; }); S.migMk=true; ch=true; }
   if(!S.migMB){ if(!FRIEND){ S.tracks.mb.on=true; S.tracks.shl.on=true; } S.migMB=true; ch=true; }
   if(!S.migSA){ (S.custom||[]).forEach((c,i)=>{ const u=(c.links&&c.links[0]&&c.links[0].u)||c.tpl||"", m=u.match(/alhatorah\.org\/Full\/([A-Za-z_]+)\//); if(!m||c.struct) return;
       const pi=SA.findIndex(x=>x[1]===m[1]); if(pi<0) return; const k="c:"+c.id; let sim=c.start; try{ const P=cPortion(k,startDay(k)); if(P.units.length) sim=P.units[0].n; else if(P.finished) sim=c.total; }catch(e){}
@@ -1037,7 +1040,7 @@ function dayView(d){
     <div class="mid"><div class="d1">${esc(fmtDate(t))}${t===today?" · היום":""}</div><div class="d2">${esc(hebDate(t))}</div></div>
     <button class="navbtn" data-go="${toISO(t+DAY)}" aria-label="יום הבא">‹</button></div>`;
   if(t!==today) h+=`<div class="row" style="justify-content:center;margin:-4px 0 12px"><a class="btn small" href="#today">חזרה להיום</a></div>`;
-  else h+=updBanner()+newsCard();
+  else h+=updBanner()+newsCard()+missedCard();
   if(isOff(t)){
     const man=!isShabbat(t)&&!holName(t);
     h+=`<div class="card" style="text-align:center"><div class="big">${isShabbat(t)?"שבת שלום":esc(offLabel(t))}</div><p class="note">${enabled().some(k=>!trackOff(k,t)&&trackPortion(k,t).units.length)?"ביום זה מתוכננים רק: "+esc(enabled().filter(k=>!trackOff(k,t)&&trackPortion(k,t).units.length).map(nameOf).join(", "))+".":"אין לימוד מתוכנן ביום זה. הלוח ממשיך ביום הלימוד הבא מהמקום שבו עצרת."}</p>
@@ -1056,7 +1059,33 @@ function dayView(d){
 function journal(d){ return `<div class="card"><div class="field" style="margin:0"><span>יומן לימוד ליום זה</span>
   <textarea data-note="day:${d}" placeholder="חידושים, שאלות, מה לחזור עליו...">${esc(S.notes["day:"+d]||"")}</textarea></div></div>`; }
 
-function trackCard(k,t){
+function trackSince(k){ if(k[1]===":"){ const c=cGet(k); return c&&c.from? c.from : S.since; } const o=trackObj(k)||{};
+  return [o.onSince, S.since].filter(Boolean).sort().pop()||TODAY(); }
+function missedList(k){ if(WAIT(k)) return []; const today=todayUTC(), mk=(S.mk&&S.mk[k])||{}, o=[];
+  for(let t=Math.max(parseISO(trackSince(k)), today-45*DAY); t<today; t+=DAY){ const d=toISO(t);
+    if(mk[d]||trackOff(k,t)||skipped(k,t)) continue; if(!trackPortion(k,t).units.length) continue; if(isDone(k,t)) continue; o.push(t); } return o; }
+function studyDays(k,n,from){ const o=[]; for(let t=from,i=0; o.length<n && i<60; t+=DAY,i++){ if(!trackOff(k,t)) o.push(t); } return o; }
+function spreadMissed(k,n){ const M=missedList(k); if(!M.length) return 0; const T=studyDays(k,Math.max(1,n),todayUTC()); S.mk=S.mk||{}; S.mk[k]=S.mk[k]||{};
+  M.forEach((t,i)=>{ S.mk[k][toISO(t)]=toISO(T[Math.min(T.length-1,Math.floor(i*T.length/M.length))]); }); return M.length; }
+function markDay(k,d,v){ const t=parseISO(d); if(k==="gemara") gPortion(t).units.forEach(u=>{ if(v) S.done[gKey(u)]=true; else delete S.done[gKey(u)]; }); logSet(k,d,v); }
+function missedCard(){ const ks=enabled().filter(k=>missedList(k).length); if(!ks.length) return "";
+  const short=t=>esc(fmtDate(t,{month:undefined,year:undefined}));
+  return `<div class="card t-custom"><div class="thead"><b class="tname">השלמות</b><span class="pill">${ks.reduce((a,k)=>a+missedList(k).length,0)}</span></div>
+    <p class="note" style="margin-top:4px">לימודים שעבר זמנם ולא סומנו. אפשר להשלים הכל היום, לפרוס על הימים הקרובים (ההשלמה תופיע בכרטיס הלימוד של כל יום), לסמן שלמדת, או לוותר.</p>
+    ${ks.map(k=>{ const M=missedList(k);
+      return `<div class="box" style="margin-top:8px"><b class="t-${tc(k)}" style="color:var(--tc)">${esc(nameOf(k))}</b> · ${M.length===1?"יום אחד":M.length+" ימים"}
+        ${M.slice(0,6).map(t=>{ const d=toISO(t), G=groups(k,trackPortion(k,t).units); return `<div class="row" style="justify-content:space-between;align-items:center;gap:6px;margin:4px 0"><span style="flex:1"><a href="#day-${d}">${short(t)}</a> · ${esc(G.map(g=>g.label).join(", "))}</span><button class="btn small" data-mkdone="${k}|${d}" aria-label="סמן שלמדתי">✓ למדתי</button></div>`; }).join("")}${M.length>6?`<p class="hint" style="margin:2px 0">ועוד ${M.length-6} ימים (בלוח השנה אפשר לפתוח כל יום)</p>`:""}
+        <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn small primary" data-mkspread="${k}|1">להשלים היום</button>
+          ${[2,3,5,7].filter(n=>n<=Math.max(2,M.length+3)).map(n=>`<button class="btn small" data-mkspread="${k}|${n}">לפרוס על ${n} ימים</button>`).join("")}
+          <button class="btn small ghost" data-mkskip="${k}">לוותר</button></div></div>`; }).join("")}</div>`; }
+function mkBoxes(k,t){ const mk=(S.mk&&S.mk[k])||{}, d0=toISO(t), ds=Object.keys(mk).filter(d=>mk[d]===d0).sort(); if(!ds.length) return "";
+  return ds.map(d=>{ const tt=parseISO(d), done=isDone(k,tt), G=groups(k,trackPortion(k,tt).units), lab=G.map(g=>g.label).join(", ");
+    return done? `<p class="hint">✓ השלמת את ${esc(fmtDate(tt,{year:undefined}))}: ${esc(lab)}</p>`
+    : `<div class="box" style="border-color:var(--tc)"><b>השלמה מ${esc(fmtDate(tt,{year:undefined}))}:</b> ${esc(lab)}
+      ${k==="gemara"? piecesHtml(k,tt) : pieces(k,tt).map(pieceBox).join("")}
+      <div class="row" style="margin-top:6px"><button class="btn small" data-mkdone="${k}|${d}">✓ השלמתי</button></div></div>`; }).join(""); }
+function trackCard(k,t){ let h=trackCard0(k,t); const m=mkBoxes(k,t); if(m) h=h.replace(/<\/div>\s*$/,m+"</div>"); return h; }
+function trackCard0(k,t){
   const P=trackPortion(k,t), done=isDone(k,t), d=toISO(t);
   const sg = (k==="gemara"||k==="parasha"||k[1]===":"||DB.includes(k))? null : segAt(k,t);
   const per = !sg? "" : " · "+sg.per+" "+({mishnah:"משניות",tanakh:"פרקים",kook:"פסקאות"}[k])+(sg.boost&&boostOn(sg.boost,spanDays(k,sg,t))?" + השלמת פיגור":"");
@@ -1565,12 +1594,15 @@ function render(keep){ EFF={};
 
 // =================== EVENTS ===================
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-newadd],[data-newx],[data-rdsel],[data-rmode],[data-li],[data-rdcfg],[data-tmode],[data-own],[data-shmode],[data-night],[data-qnav]"); if(!el) return;
+  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-mkdone],[data-mkspread],[data-mkskip],[data-newadd],[data-newx],[data-rdsel],[data-rmode],[data-li],[data-rdcfg],[data-tmode],[data-own],[data-shmode],[data-night],[data-qnav]"); if(!el) return;
   const ds=el.dataset;
   if(ds.go){ location.hash = ds.go===TODAY()? "today" : "day-"+ds.go; return; }
   if(ds.rdsel){ const [k,c]=ds.rdsel.split("|"), cur=rdSel(k), nv=cur.includes(c)? cur.filter(x=>x!==c) : cur.concat(c); setRdSel(k,nv);
     document.querySelectorAll(`[data-rdsel^="${k}|"]`).forEach(b=>b.classList.toggle("on",nv.includes(b.dataset.rdsel.split("|")[1])));
     document.querySelectorAll(`details[data-pc^="${k}|"]`).forEach(b=>{ if(b.open) openPiece(b); }); return; }
+  if(ds.mkdone){ const [k,d]=ds.mkdone.split("|"); markDay(k,d,true); save(); toast("יישר כוח!"); refresh(); return; }
+  if(ds.mkspread){ const [k,n]=ds.mkspread.split("|"), c=spreadMissed(k,+n); save(); toast(+n===1? "ההשלמות נוספו ללימוד של היום" : "ההשלמות נפרסו על "+n+" ימי הלימוד הקרובים"); refresh(); return; }
+  if(ds.mkskip){ const k=ds.mkskip; S.skip=S.skip||{}; S.skip[k]=S.skip[k]||{}; missedList(k).forEach(t=>{ S.skip[k][toISO(t)]=true; }); save(); toast("הימים סומנו כמדולגים"); refresh(); return; }
   if(ds.newadd){ setTrackOn(ds.newadd,true); S.newsSeen=(S.newsSeen||[]).concat(ds.newadd); save(); toast("נוסף ללוח"); refresh(); return; }
   if(ds.newx){ S.newsSeen=NEWS.map(x=>x[0]); save(); refresh(); return; }
   if(ds.shmode){ S.tracks.shl.mode=ds.shmode; save(); refresh(); return; }
