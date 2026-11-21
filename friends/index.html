@@ -753,6 +753,10 @@ function appVer(){ try{ return window.Android&&Android.appVersion? +Android.appV
 function apkNewer(){ return APPINFO && appVer() && +APPINFO.apk > appVer(); }
 window.onAppInfo=function(j){ try{ APPINFO=JSON.parse(j); localStorage.setItem("appinfo",j); }catch(e){} if(!typing()) refresh(); };
 window.onWebUpdate=function(){ WEBREADY=true; if(!typing()) refresh(); };
+// look for an update also when the app comes back from the background (not only when it starts)
+let lastChk=Date.now();
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState!=="visible" || Date.now()-lastChk<20*60000) return; lastChk=Date.now();
+  try{ if(window.Android&&Android.checkUpdates) Android.checkUpdates(); }catch(e){} if(typeof refresh==="function" && location.hash.indexOf("q=")<0) refresh(); });
 // tell learners who set up before about studies added since
 const NEWS=[["mb","משנה ברורה יומי (דף היומי בהלכה)"],["shl","שמירת הלשון (חפץ חיים)"]];
 function newsCard(){ if(!FRIEND||!S.name) return ""; const seen=S.newsSeen||[], items=NEWS.filter(x=>!seen.includes(x[0]) && !S.tracks[x[0]].on); if(!items.length) return "";
