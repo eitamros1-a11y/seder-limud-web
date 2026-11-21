@@ -1072,7 +1072,7 @@ function studyDays(k,n,from){ const o=[]; for(let t=from,i=0; o.length<n && i<60
 function spreadMissed(k,n){ const M=missedList(k); if(!M.length) return 0; const T=studyDays(k,Math.max(1,n),todayUTC()); S.mk=S.mk||{}; S.mk[k]=S.mk[k]||{};
   M.forEach((t,i)=>{ S.mk[k][toISO(t)]=toISO(T[Math.min(T.length-1,Math.floor(i*T.length/M.length))]); }); return M.length; }
 function markDay(k,d,v){ const t=parseISO(d); if(k==="gemara") gPortion(t).units.forEach(u=>{ if(v) S.done[gKey(u)]=true; else delete S.done[gKey(u)]; }); logSet(k,d,v); }
-function missedCard(){ const ks=enabled().filter(k=>missedList(k).length); if(!ks.length) return "";
+function missedCard(){ if(uiCfg().makeup===false) return ""; const ks=enabled().filter(k=>missedList(k).length); if(!ks.length) return "";
   const short=t=>esc(fmtDate(t,{month:undefined,year:undefined}));
   return `<div class="card t-custom"><div class="thead"><b class="tname">השלמות</b><span class="pill">${ks.reduce((a,k)=>a+missedList(k).length,0)}</span></div>
     <p class="note" style="margin-top:4px">לימודים שעבר זמנם ולא סומנו. אפשר להשלים הכל היום, לפרוס על הימים הקרובים (ההשלמה תופיע בכרטיס הלימוד של כל יום), לסמן שלמדת, או לוותר.</p>
@@ -1403,6 +1403,7 @@ function setupView(){
       <div class="rtext" style="margin:6px 0 0;font-size:20px">בְּרֵאשִׁית בָּרָא אֱלֹהִים · אמר רבי יוחנן</div></div>
     <div class="field"><span>גופן הממשק (כפתורים, הסברים)</span><select id="sel-fu">${FONTS.map(f=>`<option value="${f[0]}" ${(uiCfg().fu||"assistant")===f[0]?"selected":""}>${f[1]}</option>`).join("")}</select></div>
     <div class="field"><span>גודל הטקסט</span><div class="seg" id="seg-zoom">${[[90,"קטן"],[100,"רגיל"],[115,"גדול"],[130,"גדול מאוד"]].map(o=>`<button data-z="${o[0]}" class="${(uiCfg().zoom||100)===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>
+    <div class="field"><span>השלמות של ימים שלא סומנו</span><div class="seg">${[["1","להציג"],["0","לא להציג"]].map(o=>`<button data-makeup="${o[0]}" class="${(uiCfg().makeup===false?"0":"1")===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div>
     <div class="field"><span>הלימודים במסך היומי</span><div class="seg" id="seg-fold">${[["1","מקופלים – פותחים אחד"],["0","פתוחים"]].map(o=>`<button data-fold="${o[0]}" class="${(uiCfg().fold===false?"0":"1")===o[0]?"on":""}">${o[1]}</button>`).join("")}</div></div></div>
   <div class="card"><div class="label">שיתוף עם חברים</div><p class="note" style="margin-top:4px">חברים יכולים לפתוח את הקישור, לכתוב את השם שלהם ולבחור לעצמם את הלימודים. ההתקדמות של כל אחד נשמרת רק אצלו.</p>
     ${FRIEND?`<div class="field"><span>השם שלי</span><div class="row" style="gap:6px"><input id="my-name" value="${esc(S.name||"")}" style="flex:1"><button class="btn small" id="my-name-save">שמור</button></div></div>`:""}
@@ -1430,6 +1431,7 @@ function bindSetup(){
   if($("#req-send")) $("#req-send").onclick=sendRequest;
   if($("#share-friends")) $("#share-friends").onclick=shareFriends;
   if($("#my-name-save")) $("#my-name-save").onclick=()=>{ const n=$("#my-name").value.trim(); if(!n) return; S.name=n; save(); applyUI(); toast("נשמר"); };
+  document.querySelectorAll("[data-makeup]").forEach(b=>b.onclick=()=>{ const u=uiCfg(); u.makeup=b.dataset.makeup==="1"; localStorage.setItem("ui",JSON.stringify(u)); toast(u.makeup?"השלמות יוצגו":"השלמות לא יוצגו"); refresh(); });
   document.querySelectorAll("[data-fold]").forEach(b=>b.onclick=()=>{ const u=uiCfg(); u.fold=b.dataset.fold==="1"; localStorage.setItem("ui",JSON.stringify(u)); refresh(); });
   const today=todayUTC(), fromFor=k=>toISO(startDay(k));
   const range=(a,b,sel,off=0)=>{ let s=""; for(let i=a;i<=b;i++) s+=`<option value="${i-off}" ${i-off==sel?"selected":""}>${gem(i)}</option>`; return s; };
