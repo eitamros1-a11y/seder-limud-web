@@ -88,6 +88,12 @@ body{overflow-x:clip}
 .ccs{font-family:var(--ft);font-size:18px;margin-top:4px;cursor:pointer;color:var(--ink)}
 .card.cc.open > .ccs{display:none}
 .card.cc:not(.open) > .ccb{display:none}
+.mkcard .mkrow{border-right:4px solid var(--tc);background:color-mix(in srgb,var(--tc) 6%,transparent);border-radius:10px;padding:8px 10px;margin:8px 0}
+.mkh{display:flex;justify-content:space-between;align-items:baseline;gap:8px} .mkh b{color:var(--tc);font-size:16px} .mkn{font-size:13px;color:var(--muted)}
+.mkw{font-family:var(--ft);font-size:17px;margin:3px 0 6px}
+.mkb{display:flex;gap:6px;align-items:center;flex-wrap:wrap} .mkb .btn{width:auto;flex:0 0 auto;margin:0} .mksel{width:auto!important;flex:0 0 auto;font:inherit;font-size:14px;padding:5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.mkd{margin-top:6px} .mkd summary{font-size:13px;color:var(--muted);cursor:pointer}
+.mkday{display:flex;gap:8px;align-items:center;margin:4px 0;font-size:14px} .mkday span{flex:1} .mkday .btn{padding:2px 9px}
 .jump{position:sticky;top:0;z-index:4;display:flex;gap:6px;overflow-x:auto;padding:8px 2px;margin:0 -2px 6px;background:var(--bg);scrollbar-width:none}
 .jump::-webkit-scrollbar{display:none}
 .jchip{flex:0 0 auto;border:1px solid var(--tc,var(--line));color:var(--tc,var(--ink));background:var(--card);border-radius:999px;padding:5px 12px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
@@ -941,6 +947,7 @@ function drawPiece(box,p,st){ const sel=rdSel(p.k).filter(c=>p.cm.some(x=>x[0]==
     if(op && !cb) cb=`<div class="cmb"><span class="note">${p.cm.some(c=>st.comm[c[0]]==="!")?"לא הצלחתי לטעון חלק מהפירושים.":"אין פירושים על המקום הזה."}</span></div>`;
     return `<div class="rl${op?" op":""}${p.cm.length?" tap":""}" data-li="${i}">${l[0]?`<span class="rn">${l[0]}</span>`:""}${l[1]}</div>${cb}`; }).join(""); }
 document.addEventListener("toggle",e=>{ const b=e.target; if(b && b.dataset && b.dataset.pc && b.open) openPiece(b); },true);
+document.addEventListener("change",e=>{ const x=e.target; if(x&&x.dataset&&x.dataset.mksel&&x.value){ const k=x.dataset.mksel, n=+x.value; spreadMissed(k,n); save(); toast("ההשלמות נפרסו על "+n+" ימי הלימוד הקרובים"); refresh(); } });
 document.addEventListener("change",e=>{ const x=e.target; if(!x||!x.dataset||!x.dataset.rdpick) return; const [k,c]=x.dataset.rdpick.split("|"), all=commAll(k).map(y=>y[0]);
   let v=commPick(k).filter(y=>y!==c); if(x.checked) v.push(c); v=all.filter(y=>v.includes(y)); setCommPick(k,v); setRdSel(k,rdSel(k).filter(y=>v.includes(y)));
   const box=x.closest("[data-pc]"), id=box&&box.dataset.id; refresh(); if(id){ const nb=document.querySelector(`details[data-id="${CSS.escape(id)}"]`); const cf=nb&&nb.querySelector(".rd-cfg"); if(cf) cf.hidden=false; } });
@@ -1079,22 +1086,29 @@ function journal(d){ return `<div class="card"><div class="field" style="margin:
 function trackSince(k){ if(k[1]===":"){ const c=cGet(k); return c&&c.from? c.from : S.since; } const o=trackObj(k)||{};
   return [o.onSince, S.since].filter(Boolean).sort().pop()||TODAY(); }
 function missedList(k){ if(WAIT(k)) return []; const today=todayUTC(), mk=(S.mk&&S.mk[k])||{}, o=[];
-  for(let t=Math.max(parseISO(trackSince(k)), today-45*DAY); t<today; t+=DAY){ const d=toISO(t);
+  let from=Math.max(parseISO(trackSince(k)), today-45*DAY);
+  if(k==="parasha") from=Math.max(from, today-new Date(today).getUTCDay()*DAY); // a new week, a new parasha
+  for(let t=from; t<today; t+=DAY){ const d=toISO(t);
     if(mk[d]||trackOff(k,t)||skipped(k,t)) continue; if(!trackPortion(k,t).units.length) continue; if(isDone(k,t)) continue; o.push(t); } return o; }
 function studyDays(k,n,from){ const o=[]; for(let t=from,i=0; o.length<n && i<60; t+=DAY,i++){ if(!trackOff(k,t)) o.push(t); } return o; }
 function spreadMissed(k,n){ const M=missedList(k); if(!M.length) return 0; const T=studyDays(k,Math.max(1,n),todayUTC()); S.mk=S.mk||{}; S.mk[k]=S.mk[k]||{};
   M.forEach((t,i)=>{ S.mk[k][toISO(t)]=toISO(T[Math.min(T.length-1,Math.floor(i*T.length/M.length))]); }); return M.length; }
 function markDay(k,d,v){ const t=parseISO(d); if(k==="gemara") gPortion(t).units.forEach(u=>{ if(v) S.done[gKey(u)]=true; else delete S.done[gKey(u)]; }); logSet(k,d,v); }
 function missedCard(){ if(uiCfg().makeup===false) return ""; const ks=enabled().filter(k=>missedList(k).length); if(!ks.length) return "";
-  const short=t=>esc(fmtDate(t,{month:undefined,year:undefined}));
-  return `<div class="card t-custom"><div class="thead"><b class="tname">השלמות</b><span class="pill">${ks.reduce((a,k)=>a+missedList(k).length,0)}</span></div>
-    <p class="note" style="margin-top:4px">לימודים שעבר זמנם ולא סומנו. אפשר להשלים הכל היום, לפרוס על הימים הקרובים (ההשלמה תופיע בכרטיס הלימוד של כל יום), לסמן שלמדת, או לוותר.</p>
-    ${ks.map(k=>{ const M=missedList(k);
-      return `<div class="box" style="margin-top:8px"><b class="t-${tc(k)}" style="color:var(--tc)">${esc(nameOf(k))}</b> · ${M.length===1?"יום אחד":M.length+" ימים"}
-        ${M.slice(0,6).map(t=>{ const d=toISO(t), G=groups(k,trackPortion(k,t).units); return `<div class="row" style="justify-content:space-between;align-items:center;gap:6px;margin:4px 0"><span style="flex:1"><a href="#day-${d}">${short(t)}</a> · ${esc(G.map(g=>g.label).join(", "))}</span><button class="btn small" data-mkdone="${k}|${d}" aria-label="סמן שלמדתי">✓ למדתי</button></div>`; }).join("")}${M.length>6?`<p class="hint" style="margin:2px 0">ועוד ${M.length-6} ימים (בלוח השנה אפשר לפתוח כל יום)</p>`:""}
-        <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn small primary" data-mkspread="${k}|1">להשלים היום</button>
-          ${[2,3,5,7].filter(n=>n<=Math.max(2,M.length+3)).map(n=>`<button class="btn small" data-mkspread="${k}|${n}">לפרוס על ${n} ימים</button>`).join("")}
-          <button class="btn small ghost" data-mkskip="${k}">לוותר</button></div></div>`; }).join("")}</div>`; }
+  const dm=t=>{ const x=new Date(t); return x.getUTCDate()+"."+(x.getUTCMonth()+1); };
+  const total=ks.reduce((a,k)=>a+missedList(k).length,0);
+  return `<div class="card mkcard"><div class="thead"><b class="tname">השלמות</b><span class="pill">${total}</span></div>
+    <p class="hint" style="margin:2px 0 6px">ימים שעברו ולא סומנו. בשניים מקרא – רק הפרשה של השבוע.</p>
+    ${ks.map(k=>{ const M=missedList(k), G0=groups(k,trackPortion(k,M[0]).units), G1=groups(k,trackPortion(k,M[M.length-1]).units);
+      const np=x=>x.replace(/\s*\([^)]*\)\s*$/,""), a=G0.length? np(G0[0].label) : "", z0=G1.length? np(G1[G1.length-1].label) : "";
+      const z= k==="parasha"&&a.split(" · ")[0]===z0.split(" · ")[0]? z0.split(" · ").slice(1).join(" · ") : z0;
+      const what= M.length===1? G0.map(g=>g.label).join(", ") : (a===z0? a : a+" עד "+z);
+      return `<div class="mkrow t-${tc(k)}"><div class="mkh"><b>${esc(nameOf(k))}</b><span class="mkn">${M.length===1?"יום אחד":M.length+" ימים"}${M.length>1?" · מ־"+dm(M[0])+" עד "+dm(M[M.length-1]):" · "+dm(M[0])}</span></div>
+        <div class="mkw">${esc(what)}</div>
+        <div class="mkb"><button class="btn small primary" data-mkspread="${k}|1">היום</button>
+          <select class="mksel" data-mksel="${k}"><option value="">לפרוס…</option>${[2,3,5,7].map(n=>`<option value="${n}">על ${n} ימים</option>`).join("")}</select>
+          <button class="btn small" data-mkall="${k}">✓ למדתי</button><button class="btn small ghost" data-mkskip="${k}">ויתור</button></div>
+        ${M.length>1?`<details class="mkd"><summary>לפי ימים</summary>${M.map(t=>{ const d=toISO(t); return `<div class="mkday"><a href="#day-${d}">${dm(t)}</a><span>${esc(groups(k,trackPortion(k,t).units).map(g=>g.label).join(", "))}</span><button class="btn small" data-mkdone="${k}|${d}" aria-label="סמן שלמדתי">✓</button></div>`; }).join("")}</details>`:""}</div>`; }).join("")}</div>`; }
 function mkBoxes(k,t){ const mk=(S.mk&&S.mk[k])||{}, d0=toISO(t), ds=Object.keys(mk).filter(d=>mk[d]===d0).sort(); if(!ds.length) return "";
   return ds.map(d=>{ const tt=parseISO(d), done=isDone(k,tt), G=groups(k,trackPortion(k,tt).units), lab=G.map(g=>g.label).join(", ");
     return done? `<p class="hint">✓ השלמת את ${esc(fmtDate(tt,{year:undefined}))}: ${esc(lab)}</p>`
@@ -1615,13 +1629,14 @@ function render(keep){ EFF={};
 
 // =================== EVENTS ===================
 document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-mkdone],[data-mkspread],[data-mkskip],[data-newadd],[data-newx],[data-rdsel],[data-rmode],[data-li],[data-rdcfg],[data-tmode],[data-own],[data-shmode],[data-night],[data-qnav]"); if(!el) return;
+  const el=e.target.closest("[data-go],[data-cal],[data-gtoggle],[data-tdone],[data-kadj],[data-xrun],[data-xdel],[data-xtra],[data-off],[data-catch],[data-export],[data-xcopy],[data-kehati],[data-xask],[data-sfpick],[data-day],[data-rm],[data-restore],[data-cdelp],[data-goadd],[data-reload],[data-chkupd],[data-mkdone],[data-mkall],[data-mkspread],[data-mkskip],[data-newadd],[data-newx],[data-rdsel],[data-rmode],[data-li],[data-rdcfg],[data-tmode],[data-own],[data-shmode],[data-night],[data-qnav]"); if(!el) return;
   const ds=el.dataset;
   if(ds.go){ location.hash = ds.go===TODAY()? "today" : "day-"+ds.go; return; }
   if(ds.rdsel){ const [k,c]=ds.rdsel.split("|"), cur=rdSel(k), nv=cur.includes(c)? cur.filter(x=>x!==c) : cur.concat(c); setRdSel(k,nv);
     document.querySelectorAll(`[data-rdsel^="${k}|"]`).forEach(b=>b.classList.toggle("on",nv.includes(b.dataset.rdsel.split("|")[1])));
     document.querySelectorAll(`details[data-pc^="${k}|"]`).forEach(b=>{ if(b.open) openPiece(b); }); return; }
   if(ds.mkdone){ const [k,d]=ds.mkdone.split("|"); markDay(k,d,true); save(); toast("יישר כוח!"); refresh(); return; }
+  if(ds.mkall){ const k=ds.mkall, M=missedList(k); M.forEach(t=>markDay(k,toISO(t),true)); save(); toast("יישר כוח!"); refresh(); return; }
   if(ds.mkspread){ const [k,n]=ds.mkspread.split("|"), c=spreadMissed(k,+n); save(); toast(+n===1? "ההשלמות נוספו ללימוד של היום" : "ההשלמות נפרסו על "+n+" ימי הלימוד הקרובים"); refresh(); return; }
   if(ds.mkskip){ const k=ds.mkskip; S.skip=S.skip||{}; S.skip[k]=S.skip[k]||{}; missedList(k).forEach(t=>{ S.skip[k][toISO(t)]=true; }); save(); toast("הימים סומנו כמדולגים"); refresh(); return; }
   if(ds.newadd){ setTrackOn(ds.newadd,true); S.newsSeen=(S.newsSeen||[]).concat(ds.newadd); save(); toast("נוסף ללוח"); refresh(); return; }
