@@ -964,7 +964,7 @@ function loadMishnah(){ if(MTEXT||mLoading) return mLoading; mLoading=fetch("mis
 let sampleFn=null; const EXP={}; const expBusy={};
 const IS_APK = location.protocol==="file:" || !!window.STANDALONE;
 function llmCfg(){ try{ return JSON.parse(localStorage.getItem("llm")||"{}"); }catch(e){ return {}; } }
-function aiName(){ return IS_APK ? (llmCfg().provider==="claude"?"Claude":"Gemini") : "Claude"; }
+function aiName(){ const p=llmCfg().provider; return IS_APK ? (p==="claude"?"Claude":p==="openai"?"ChatGPT":"Gemini") : "Claude"; }
 const SYS_BASE="אתה חברותא ומלמד תורה לבן תורה שלומד סדר יומי קבוע: גמרא, משנה, תנ״ך, פרשת השבוע וכתבי הרב קוק. כללים: "+
   "1. דיוק לפני הכול. אל תמציא ציטוטים, מראי מקומות או שיטות. אם אינך בטוח במקור או בתוכן, כתוב זאת במפורש. "+
   "2. הבחן בבירור בין פשט, דרש, הלכה ומחשבה, ובין דברי המקור עצמו לבין פרשנות או הצעה שלך. "+
@@ -984,7 +984,19 @@ async function llmCall(prompt,opts){
   const c=llmCfg(); let r,j,text="";
   const fail=m=>{ throw {code:"api",message:m}; };
   try{
-    if(c.provider==="claude"){
+    if(c.provider==="openai"){
+      // the newest model first; an unknown or retired name (404/400) moves on to the next one
+      const models=[c.model||"gpt-6.2-sol","gpt-6.1-sol","gpt-5.5"].filter((m,i,a)=>a.indexOf(m)===i);
+      for(let i=0;i<models.length;i++){
+        r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+c.key},
+          body:JSON.stringify({model:models[i],messages:[{role:"system",content:sysText()},{role:"user",content:prompt}]})});
+        j=await r.json().catch(()=>({}));
+        const badModel=(r.status===404||r.status===400) && /model/i.test(((j.error||{}).message||"")+((j.error||{}).code||""));
+        if(r.ok || !badModel || i===models.length-1) break;
+      }
+      if(!r.ok) fail(r.status===429? "המכסה של ChatGPT נגמרה או שהשירות עמוס. בדקו שיש קרדיט בחשבון ה־API." : r.status===401? "המפתח של ChatGPT לא תקין." : ((j.error&&j.error.message)||("שגיאה "+r.status)));
+      text=(((j.choices||[])[0]||{}).message||{}).content||"";
+    } else if(c.provider==="claude"){
       r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":c.key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
         body:JSON.stringify({model:c.model||"claude-sonnet-5-5",max_tokens:2500,system:sysText(),messages:[{role:"user",content:prompt}]})});
       j=await r.json(); if(!r.ok) fail((j.error&&j.error.message)||("שגיאה "+r.status));
@@ -1380,9 +1392,10 @@ function setupView(){
     <button class="btn small" id="rm-save">שמור</button></div>`; })():""}
   ${IS_APK?`<div class="card"><div class="label">הרחבות AI</div>
     <p class="note">ההרחבות נכתבות דרך מפתח API אישי שלך. המפתח נשמר בטלפון הזה בלבד ואינו נכלל בגיבוי.</p>
-    <div class="field"><span>ספק</span><select id="ai-p"><option value="gemini" ${llmCfg().provider!=="claude"?"selected":""}>Gemini (גוגל)</option><option value="claude" ${llmCfg().provider==="claude"?"selected":""}>Claude (Anthropic)</option></select></div>
+    <div class="field"><span>ספק</span><select id="ai-p"><option value="gemini" ${!["claude","openai"].includes(llmCfg().provider)?"selected":""}>Gemini (גוגל)</option><option value="openai" ${llmCfg().provider==="openai"?"selected":""}>ChatGPT (OpenAI)</option><option value="claude" ${llmCfg().provider==="claude"?"selected":""}>Claude (Anthropic)</option></select></div>
     <div class="field"><span>מפתח API</span><input type="password" id="ai-k" value="${esc(llmCfg().key||"")}" autocomplete="off"></div>
-    <div class="field"><span>שם המודל (לא חובה)</span><input type="text" id="ai-m" dir="ltr" value="${esc(llmCfg().model||"")}" placeholder="gemini-3.5-flash"></div>
+    <div class="field"><span>שם המודל (לא חובה)</span><input type="text" id="ai-m" dir="ltr" value="${esc(llmCfg().model||"")}" placeholder="${llmCfg().provider==="openai"?"gpt-6.2-sol":llmCfg().provider==="claude"?"claude-sonnet-5-5":"gemini-3.5-flash"}"></div>
+    <p class="hint" style="margin:-4px 0 8px">מאיפה מוציאים מפתח: Gemini – aistudio.google.com/apikey (יש שכבה חינמית). ChatGPT – platform.openai.com/api-keys (דורש קרדיט בתשלום בחשבון ה־API, נפרד ממנוי ChatGPT). Claude – console.anthropic.com.</p>
     <div class="field"><span>הנחיות אישיות ל־AI (לא חובה)</span><textarea id="ai-s" placeholder="למשל: הסבר ברמה של בוגר ישיבה. הדגש את שיטת הרמב״ם. קשר לתורת הרב קוק כשזה מתאים.">${esc(llmCfg().sys||"")}</textarea></div>
     <p class="note">ה־AI כבר מוגדר כחברותא ללימוד תורה: דיוק במקורות, הבחנה בין פשט לדרש, ובלי להמציא ציטוטים. מה שתכתוב כאן יתווסף לכל בקשה.</p>
     <button class="btn small" id="ai-save">שמור</button></div>`:""}
@@ -1509,7 +1522,7 @@ function bindSetup(){
     save(); toast("הספר נוסף"); refresh(); };
   if($("#rm-save")) $("#rm-save").onclick=()=>{ const ts=$("#rm-on").checked?[...document.querySelectorAll(".rm-t")].map(x=>x.value).filter(Boolean):[];
     try{ Android.setReminders(ts.join(",")); toast(ts.length?"התזכורות נשמרו":"התזכורות כובו"); }catch(e){ toast("לא הצלחתי לשמור"); } };
-  if($("#ai-save")){ $("#ai-p").onchange=()=>{ $("#ai-m").value=""; $("#ai-m").placeholder=$("#ai-p").value==="claude"?"claude-sonnet-5-5":"gemini-3.5-flash"; };
+  if($("#ai-save")){ $("#ai-p").onchange=()=>{ $("#ai-m").value=""; $("#ai-m").placeholder=$("#ai-p").value==="claude"?"claude-sonnet-5-5":$("#ai-p").value==="openai"?"gpt-6.2-sol":"gemini-3.5-flash"; };
     $("#ai-save").onclick=()=>{ const c={provider:$("#ai-p").value,key:$("#ai-k").value.trim(),model:$("#ai-m").value.trim(),sys:$("#ai-s").value.trim()};
       try{ localStorage.setItem("llm",JSON.stringify(c)); }catch(e){} sampleFn=c.key?llmCall:null; toast(c.key?"נשמר – כפתור ההרחבה פעיל":"המפתח הוסר"); }; }
   const showTxt=()=>{ $("#rsBox").innerHTML=`<p class="note">העתיקו ושמרו את הטקסט:</p><textarea readonly>${esc(backupText())}</textarea>`; };
